@@ -1,0 +1,5 @@
+FONT AWESOME
+PLACE AT BOTTOM OF HEAD:
+<script src="https://use.fontawesome.com/20780da240.js"></script>
+or
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
