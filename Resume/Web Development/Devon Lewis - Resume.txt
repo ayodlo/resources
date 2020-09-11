@@ -11,23 +11,30 @@ University of California, Santa Barbara - Bachelor's Degree, Communications
 FREELANCE EXPERIENCE
 Conaxion Inc,  Remote - Full Stack Developer
 AUGUST 2019 - PRESENT
-* Experience building Conaxion Inc’s online freelance student platform. The Web Application aims to provide students with professional experiences within their field of study.
-* Used React Library and Redux in the app for a comprehensive means of managing state within the JavaScript Application.
-* Designed dynamic and web compatible pages using HTML5, CSS, JavaScript and React 16.
+* Used React Library and Redux in the app for a comprehensive means of managing state within the JavaScript Application and used HTML5, CSS, JavaScript and React 16 to design dynamic and web compatible pages.
 * Developed fetch services for the backend REST API and mapped them to the frontend using React 16 to display lists and content unique to each user.
-* Responsible for Client-Side UI Validation and Business Logic implementation based on user selection using React 16.
-* Responsible for initiating, planning, constructing, executing, monitoring and controlling the deployment of the web application.
-* Worked closely with production owners to understand application requirements and implement new requirements through iterations.
-* Environment: VSCode
 “Mastering Me” Website,  Remote - Web Master
 MARCH 2020
-* Experience building a website for author Tashuna Scott's book "Mastering Me".
-* Helped increase physical book sales by providing a unique platform for customers to purchase her book.
-* Designed dynamic and web compatible pages using HTML5, CSS and JavaScript.
-* Used GoDaddy’s servers as a means of hosting and FileZilla as a means of file management.
+* Increase physical book sales by providing a unique platform for customers to purchase her book.
+* Designed dynamic and web compatible pages using HTML5, CSS and JavaScript and used GoDaddy’s servers for hosting and FileZilla as a means of file management.
 SKILLS
-Seasoned email marketer, designer, and developer with over nine years experience in the email marketing industry. Has a strong knowledge of lifecycle marketing, customer journey strategy, industry best practices, CAN-SPAM compliance, HTML5/CSS3, automation build, audience segmentation, and more.
-RECENT WEB PROJECTS
+Languages:
+Frameworks:
+Libraries:
+Platforms:
+Tools:
+Paradigms:
+Storage:
+Misc:
+	HTML, CSS, JavaScript, JSON, TypeScript
+Angular 8
+ReactJS, Handlebars, Nodejs
+Unix, Windows 7, 8, 9, 10, Mac OS X
+Webpack, Postman, NPM
+Object-Oriented (OOP), Functional Programming
+PostgreSQL, MongoDB
+REST API, Git, GitHub, Slack, Trello
+	RECENT WEB PROJECTS
 Trip Calculator Application https://fathomless-fortress-87754.herokuapp.com/
 REACT, REDUX, JAVASCRIPT, HTML, CSS
 A responsive, single page application that estimates how much surplus money users will have each month. This calculation is based on the users monthly expenses and income. It’s minimal interface allows for the input and deletion of recurring and non-recurring expenses after a user has registered.
