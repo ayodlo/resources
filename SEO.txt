@@ -1,0 +1,63 @@
+On Page Seo
+
+From most important to least important...
+1) TITLE (50-60 Chars in Length)
+Huge signal in helping search engines understand what page is about. Most important on-page seo ranking factor and should contain main keywords that page is targeting.
+
+<title>Learn Javascript - Javascript Mastery</head>
+
+
+2) DESCRIPTION (Under 150 Chars)
+As TITLE, should be unique and should contain the primary keyword.
+
+<meta name="description" content="The purpose of JavaScript Mastery is to help aspiring and established developers to take their development to the next level and build awesome apps." />
+
+
+3) URL (Under 115 Chars - Shorter the Better)
+Explains what the website is about. Easy to understand, and tell search engines, and humans what the page is about. 
+
+https://johnsblog.com/blog
+https://johnsblog.com/blog/theTitle
+
+4) OTHER META TAGS
+*keywords attribute
+A series of keywords you deem relevant to the page
+<meta name="keywords" content="HTML, CSS, JAVASCRIPT, JS, WEB DEVELPOMENT" />
+
+*meta viewport
+Gives the browser instructions on how to control the pages dimension and scaling
+<meta name="viewport" content="width-device-width, initial-scale=1.0"
+
+*meta charset
+defines a character set
+<meta charset="UTF-8" />
+
+*meta author
+defines the author of a page
+<meta name="author" content="John Doe" />
+
+5) FAVICON
+Improves user experience. Much easier to find needed bookmark by image, associated with a certain website, rather than looking through diff urls
+<link rel=:shortcut icon" type="image/ico" href="./favicon.ico" />
+
+6) IMAGES
+Compress images and everything else you can. Visit compress jpeg website.
+
+7) ATTRIBUTES
+Alt Tags - Play a role in SEO. Help search engines associate images with a web page's content so they can properly index it within their search results.
+<img src="dogs-min.jpg" width="25%" alt="two dogs playing " />
+
+Title Tags -  Appears when hovering over link. Also a purpose for SEO.
+<a href="https://google.com" title="Google">Google</a>
+
+8) MOBILE FRIENDLINESS
+Use Media Queries
+
+9) MINIFY AND COMPRESS
+When you minify website's css, html and js files, you can shave some valuable time off your sites page load speed.
+compressjpeg.com
+minifycode.com
+
+10) KEYWORD USAGE
+Keywords must appear in title, meta description and headings. Also, placing main keyword of the page in headinds and subheadings its best practice to squeeze it into the opening paragraph as well.
+<ht>Learn Javascript with Javascript Mastery</h1>
