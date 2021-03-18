@@ -1,39 +1,38 @@
 /////Tell me about yourself?/////
-  0. I graduted with my Master's in Web Development late in 2018.
-  1. For the past 6 months I have been working with Conaxion Inc to build their online freelance platform that connects students to small businesses. We've been using React to help build the website.Z
-  2. I'm hard-working, dependable, friendly, and enthusiastic about the work I do. 
-  3. I'm always looking to improve my skillset so I can work to the highest standards possible.
-  4. I'm a quicker learner and work hard to pick things up as quickly as possible.
-  5. I've fulfilled my contract, we are currently working on a means for deployment and a marketing strategy.
+  0. I graduted with my Master's in Web Development late in 2018. I studied rich application development, learned HTML, CSS, JavaScript, JavaScript Frameworks like   React and Angular, SEO via Meta Tags and On Page SEO, accessibility, Relational Databases, None Relational Databases, Server Side Languages, Algorithms and Data   Structures, Big O, App Optimization, and some programming paradigms.
+  1. Currently I'm a sub-contractor working for a company called Trusted Creative. We do everything from web Content Strategy, to Web Development and Email           Management. We're currently working on developing a site for a hotel company. The hotel is called El Monterey and I have been responsible for the development of        the site. We're using Wordpress as a content management system. I've been responsible for associating the domains they want to use to GoDaddy's hosting, forwarding sister domain's to the primary website, installing the Wordpress application to the hosting, and making sure any necessary plugins are installed on the Wordpress. For instance we just intalled a plugin called Sirvoy that allows customers to make reservations to the hotel. 
+  2. I'm hard-working, dependable, a good communicator, enthusiastic about the work I do, passionate about technology, and am an avid learner.
 
+/////Why do you want to work here? & Why should we hire you?/////
+I think Learn 4 Life's values align with my own. My ideal job is a job that allows me to help make the world a better place while doing something I love to do. If I can help students or at risk students with special needs through web development and information technology then I'd be going home happy every day. On top of that, I've looked over the qualifications for the position and I am confident in my ability to perform the role well. I have experience with front end development, databases, back end servers, frameworks like React, Content Management Systems like Wordpress, HTML, CSS, Javascript, and have IT customer service experience.
 
-/////Why do you want to work here?/////
-1. I've looked over the qualifications for the position I am confident in my ability to perform the role well.
-2. I did some research on formstack and saw a ton of good reviews on GlassDoor about how its a welcoming startup like environment. Theres unlimited PTO and the work is remote.
-3. Also as far as requirements go, I have experience with front end development, Javascript, React, Redux, HTML, CSS, and some NodeJS.
-  -Deep understanding of Software Applications in general given my constant involvement in developing Web Application HTML CSS, and JavaScript
+///How do you keep yourself organized?///
+I keep a todo list of things to do on my sticky notes on my laptop and desktop computer. Also, I set alarms and reminders on my iPhone to remind me of things I need to do and have that alarm go off every day at 10:00 AM.
 
+///What do you know about our company?///
+ I know Learn 4 Life is a charter school that provides personal learning specific to the needs of students and youth that are considered at risk or who have special needs. I know alot of the students are homeless or have issues with their day to day lives. Learn 4 Life helps them succeed.
 
-///Obstacle at Work///
-When I first came into this project there was an existing codebase that was unorganized and wasn't very modulare. I took it upon myself to use the existing progress as a sort of wire-frame and re-coded the existing app so it would more organized and also made sure all dependencies were up to date. This helped progress moving forward since I no longer had to decipher what component did what and where business logic was.
+///What kind of performance critique would you get from a past manager?///
+When I worked for a Utility Watch and Protect Company before this in we'd make sure utility companies were in comliance with safety laws when installing utilities or doing construction around utilities. My boss asked me to take a job over the weekend once for a job that was suppose to take one hour but took the entire day. I wasn't sure if I should have called him, I didn't want to bother him, so I stuck it out for the entire Saturday. He ended up getting upset that I didn't communicate the situation with him because know we had to justify why the job took so long to our contractor. So yea, I learned that during odd situations its always good to keep your team and supervisors informed of unexpected situations even when you think your are helping.
 
+///Conflicts at Work///
+When I worked for a Utility Watch and Protect Company before this in we'd make sure utility companies were in compliance with safety laws when installing utilities or doing construction around utilities. There was a time where CenturyLink (a telecommunications company) wasn't going to be able to meet the regulations for how far their utility had to be from our gas line. The crew ended up going against their own regulations to meet ours so they could finish the job. I ended up getting a call from HR saying that crew manager filed a complaint against me stating I was telling his crew how to do their jobs and that I was being rude and unprofessional while I was there (which wasn't the case at all I was very cool with the crew and they ended up deciding to go against their own regulations to get the job done). I called the crew manager before he talked to my boss and explained the situation and the impression I had upon leaving which was that they got the okay from someone to lay the utility at such a shallow depth. It ended up being that the crew had lied to him and he appologized for the accusations and said he would have a talk with his crew as well as call my office and revoke his statements about me. So through patience and clear communication I was able to get through that situation without making matters worse for my team and our company without escalating matters with him or his team.
 
-///Deadline///
-My girlfriend got in a car accident a couple years ago while I was on my way to a Stand By as a Watch and Protect Locator for XCEL. As soon as it happened I called my supervisor and explained the situation to him and asked if there was anyone that could help me or if there was a way we could schedule the Stand By for a later time after I made sure Jasmin was okay and had everything she needed. He told me it was fine and that he would take my place at the Stand By.
+///You have worked in a position where you have not been giving the tools to do your job effectively, how would you handle this situation?///
+Ex: Communicate your needs to management,collaborate with team members for suggestions,  figure out a way to problem solve.
 
+///How do you deal with stress?///
+When stressful situations come up, I buckle down and focus on what needs to get done. I might take a step back and really think about how I can most efficiently resolve the task at hand and start to execute. I might drink something thats caffinated, buckle down and start at the task at hand. If I think help is available I might ask for some assistance (if people have time), but if not, I work towards chipping away at the task at hand. I made it through undergrad and gradschool and understand what it means to work for a client and the importance of deadlines. Staying organized and making good use of your time will go a long way.
 
 ///Difficult Colleague///
 Before I started on Conaxion's project I worked for XCEL Energy's Watch & Protect program. There were many times when contracts would ask us to Stand By for them over night or during the weekend to ensure no gas lines were damaged. I volunteered plenty of times for these over night jobs so that other colleagues who had commitments woulnd't be forced to abondon their family plans or other commitments. In the end everyone was happy and most of the time I got the next work day off.
 
-
 ///Give Example of Teamwork///
 Before I started on Conaxion's project I worked for XCEL Energy's Watch & Protect program. There were many times when contractors would ask us to Stand By for them over night or during the weekend and our job was to make sure no gas lines were damaged while they were drilling or digging next to them. I volunteered plenty of times for these over night jobs so that other colleagues who had commitments woulnd't be forced to abondon their family plans or other commitments. In the end everyone was happy and most of the time I got the next work day off.
-
 
 ///What is customer services///
 -To me, customer service means identifying the root of a customer’s issue and working to find a solution that surpasses their expectations using in-depth knowledge of the company’s service or product. 
 -Its about maintaining a positive and friendly attitude that makes a good first impression and leaves a lasting one.
-
 
 ///Stengths///
 I have a hard-working nature;
@@ -44,20 +43,11 @@ I am dependable.
 I have a passion for technology
 One thing that I feel makes me stand out from the majority of employees is that I am always looking for ways to improve the way I perform at work. If a colleague or manager were to give me some form of constructive criticism I would find a way to improve in whatever in whatever area they felt I needed to improve in, whether it meant finding an online course or reading technical documentation.
 
-
 ///Weaknesses///
 - I am a perfectionist and am always eager to complete the task at hand. So sometimes I forget to take a break or eat lunch while Im working.
 
-
 ///Where do you see yourself in 5 years’ time?///
-If Im successful today, the first thing I'd want to do is get familiar with the code base and become productive in my role as soon as possible. Once I find a good rythm and am performing the role to a good standard, I'd like to see where I can help others and become experienced within the team. 
-
-So, I guess the short answer to this question is that I want to become good at my job, be accepted by my team and managers and enjoy my work as much as possible.
-
-If the opportunity comes to move up within the organisation, that would be great. All in all, Id like to stay with the company long-term if I make it through these interviews.
-
+If Im successful today, the first thing I'd want to do is get familiar with the code base and become productive in my role as soon as possible. Once I find a good rythm and am performing the role to a good standard, I'd like to see where I can help others and become experienced within the team. If the opportunity comes to move up within the organisation, that would be great. All in all, Id like to stay with the company long-term if I make it through these interviews.
 
 //Questions / Comments?///
-I just want to say that if I were selected for this position it would be pride and joy, nothing would make me happier. As a team member I want nothing more than to see my team success and would make sure I do everything within my power to make sure we do succeed. 
-
-I hope to make it to the next interview round so I can better demonstrate my skillset through a coding challenge or some technical questions.
+I just want to say without sounding to forward that I do really want this job. I think I can bring alot of great value to the team. Like I said I am a hard worker, I am dependeable, and whenever I am a part of a team I want nothing more than to see my team succeed. I appreciate you all for taking the time and look forward to any feedback you might have for me now or in the future.
