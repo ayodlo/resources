@@ -1,0 +1,75 @@
+Accesibility
+
+Roles - Landmark Roles
+<header role="banner />
+<navigation role="navigation" />
+<main role="main" />
+<footer role="contentinfo" />
+
+Links - Aria Labels
+Better to put the real text in the link and also use aria label
+Make sure you include alt
+<a href="#" aria-label="read more about the largest dinosaur" />
+
+Charts and Informational Images
+Can create a description list that describes each of the bars in a graph or chart
+Should not be hidding the dl, but if you do make sure the html is still visible
+<img aria-details="graph-info" />
+<dl id="graph info">
+  <dt>Jupiter</dt>
+  <dd>67 moons</dt>
+</dl>
+
+
+Links - Focus
+Make the focus highly contrasting on your site
+a:focus {
+  outline: 3px solid black;
+}
+
+
+Skip Links
+At top of page at the beginning of body we want to add our skip links
+You can hide them but they should still be accessible with alot of contrast on our page
+<ul class="skip-links">
+  <li><a href="#nav>Skip to Navigation</a></li>
+  <li><a href="#main>Skip to the main content</a></li>
+</ul>
+
+.skip-links {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  background-color: black;
+  padding: 0.5 0.75em;
+  font-weight: bold;
+  text-decoration: none;
+}
+.skip-links a {
+  position: absoulte;
+  top: -3em;
+}
+
+.skip-links a:focus {
+  top: 0;
+}
+
+Back to Top Button
+<header role="banner" id="top>
+<footer>
+  <a href="#top" />
+< /footer>
+
+Font-Size
+Make sure the layout doesn't break if the font-size is changed
+Try to increase font size by 2 in the browser options as well as down in the in the browser options
+Use tool web-developer tool bar or browser options to remove images and see how website responds, make sure nothing breaks (e.g. make sure nothing dissapears like navigation or background-images)
+Use tool Color Oracle to debug color blindness issues you can check for contrast issues
+
+Debugging Accessibility Issues
+Total Validator - App that checks accessibility issues
+eave.webaim.org does the same thing except its on the site
+Accessibility Developer Tools - Chrome Extension
+
+Screen Readers
+Make sure you use a screen reader to test things
