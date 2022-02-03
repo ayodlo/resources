@@ -1,6 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*STARTERS*/
 ////////////////
+//Make sure yarn is installed globally on your device
+//Run:
+npm install --global yarn
 //Remove App.test.js, logo.svg, reportWebVitals.js and setupTest.js and any location they were being used
 //Add ES7 Snippets - Make sure its the React one...
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,10 +49,10 @@ No More Than 100 Lines!
 4. Map out architecture of app to determine responsibility of each component (SOLID)
 5. Use Fragment vs Div where possible
 6. Containers may be responsible for fetching data and composed of other components
-7. Presentation components get their data from their parents (dumb components)
+7. Presentation components get their data from their parents (presentation components are dumb components)
 8. Component has 1 reason to change (Isolation and Control - Single Responsibility).
   -> If component has multiple responsibilities split component into chunks by each individual responsibility.
-9. Start with top down and built hierarchy with static version of JSON Data Model
+9. Start with top down and build hierarchy with static version of JSON Data Model
 10. Want the least amount of nodes to update upon each data update -> keep state in lowest node possible for optimization
 */
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

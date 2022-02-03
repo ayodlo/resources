@@ -1,46 +1,46 @@
-/*WHY TEST ?*/
-//Check if app behaves as expected, safeguard against unwanted behavior when changes maxHeaderSize, automated an efficient in the long term.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*WHY TEST ?*/
+/////////////
+//Check if app behaves as expected, safeguard against unwanted behavior when changes maxHeaderSize, automated and efficient in the long term.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*WHAT TO TEST??*/
+/////////////////
 /*START TESTING FROM THE BOTTOM UP (CONCISE TO BIGGER PICTURE)*/
 /*Test High Value Features (Most Important Features) and Edge Cases in High Value Features*/
 /*Things that are EASY to break*/
 /*Basic React Component Testing
---->User Interactions
---->Conditional Rendering
---->Unit / Hooks*/
-/*Do NOT Test Implementation Details
---->Changes for variables and state (etc)*/
+  ---> User Interactions
+  ---> Conditional Rendering
+  ---> Uils / Hooks*/
+/*DONT TEST Implementation Details (a decision that is left to be made by the developers, and is not specified at an earlier level (such as a requirement document or, depending on context, an architectural document))
+  ---> Changes for variables and state (etc)*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Are All Use Cases Accounted For?*/
+///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Do All Use Cases Have Unit Tests, E2E Testing, DOM Testing?*/
+//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Use Typescript or Type Validation*/
+////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Use Prop Type Validation*/
+///////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Accessibility*/
+////////////////
 //Make sure you are using aria-labels and roles properly
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Form Validation*/
+//////////////////
 //File types
 //File min size and max size
 //Input types
 //Min and max string length
 //Min and max int size
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /*Consider All Dependencies.*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//////////////////////////////
 //We don't want dependencies shifting around.
 //The * indicates you use the latest version of a dependency and that you keep up with latest versions
 //This assumes you religiously unit test the code
@@ -67,123 +67,90 @@
         "node": ">0.6"
     }
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*JEST Setup Kent C Dodds*/
-////////////////
-import { getHeapStatistics } from "v8"
-//run code:
-npm install --save dev jest
-//add a test script
-//run jest in that test script.
-"scripts": {
-    "test": "jest",
-    "dev": "webpack-serve",
-    "build": "webpack --mode=production",
-    "postbuild": "cp ./public/index.html ./dist/index.html",
-    "start": "serve --no-clipboard --listen 8080 dist",
-    "lint": "eslint .",
-    "format": "prettier \"**/*.js\" --write",
-    "validate": "npm run lint && npm run test && npm run build",
-    "setup": "npm run setup && npm run validate"
-}
-//in terminal npm run test or npm test or npm t.
-//you'll get this error that says "no files found."
-//of 15 files none of them matched this test match and so it didn't run any of our files as test. Let's go ahead and create that test file. We'll put it right in the source directory here(src folder)
-//create a new directory __tests__ and that will match the testMatch glob in the terminal
-//example.js. to the file name
-//we'll just make a test that says, "It works."
-test('it works', () => {})
-//run our test script again and it runs our example. 
-//We can also move this file right here(outside of the __test__ folder) and name it with a .test, and that will work just as well
-//We want to co-locate the test to where the file is that it's testing as close as possible. You will find that I put my test directory right next to the file that's being tested.
-//One other thing that I want to do here is if we check out my travesty YAML file, the CI configure here, we have this script that runs NPM run setup.
-//That setup script is going to run install and then validate, and that validates that the project is in a working state. 
-//Right now, it's running the linting and the build. I wanted to also run the test. If the linting passes, I'm going to have it run the test script. 
-//run npm run validate, it's going to run the linting first, it'll run the test, and then it'll run the build.
-
-/*Configure Jest's Test Environment for testing Node or Browser code*/
-//Create new file in root directory
-jest.config.js
-//Within file add the following
-//Be explicit about the environment to emulate the most real environment possible
-module.exports = {
-    testEnvironment: 'jest-environment-node' //can add jsdom at the end to explicitly make the environment brower based
-}
-
-/* Support Importing CSS Files W/ Jest's moduleNameMapper*/
-//Need to use moduleNameMapper so we can map modules that end in .css to a different module (mock version of module) so it can be stebbed out and we can require this file in our test
-//Open jest.config.js
-//We'll say anything that ends in .css and this is a Rejex pattern here, we want to require resolve.
-module.exports = {
-    testEnvironment: 'jest-environment-jsdom',
-    moduleNameMapper: {
-      '\\.css$': require.resolve('./test/style-mock.js'),
-    },
-  }
-
-/*Support using Webpack CSS Modules with Jest*/
-//add this line ('\\.module\\.css$': 'identity-obj-proxy',) to our moduleNameMapper
-//Instead of actually importing auto-scaling-text.module.css, it's going to import identity-obj-proxy.
-//What that is going to do is it will return a string for the path that was accessed for this particular module. 
-//That makes our test a lot easier to debug. 
-//It allows us to make some assertions on the class name that's going to be applied, even though that class name is going to be generated at run time.
-module.exports = {
-    testEnvironment: 'jest-environment-jsdom',
-    moduleNameMapper: {
-      '\\.module\\.css$': 'identity-obj-proxy',
-      '\\.css$': require.resolve('./test/style-mock.js'),
-    }
-  }
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Test Driven Development Setup*/
 ////////////////
 //Create test before writing your actual code
-//Install JEST via npm install --save-dev jest
-//Install Enzyme via npm i --save-dev enzyme
-//If  using React 0.14, in addition to enzyme, you will have to ensure that you also have the following npm modules installed if they were not already
-//npm i --save-dev react-addons-test-utils
-//npm i --save-dev react-dom
-
-//Import extend-expect to test files every time:
-import '@testing-library/jest-dom/extend-expect';
-
-//OR add in your jest.config.js file
-module.exports = {
-  "setupFilesAfterEnv": [
-    "<rootDir>/jest.setup.js"
-  ]
-}
-//and to create jest.setup.js with the content
-import '@testing-library/jest-dom'
-import '@testing-library/jest-dom/extend-expect';
-
-//Export whatever function you want to test
-function sum(a, b) {
-    return a + b;
-  }
-  module.exports = sum;
-//Create a file named sum.test.js. This will contain our actual test
-const sum = require('./sum');
-
-test('adds 1 + 2 to equal 3', () => {
-  expect(sum(1, 2)).toBe(3);
-});
-//Add the following section to your package.json
-{
-    "scripts": {
-      "test": "jest"
-    }
-  }
-//Run npm run test and Jest will print this message
-//This test used expect and toBe to test that two values were exactly identical.
-//To learn about the other things that Jest can test, see https://jestjs.io/docs/using-matchers
-PASS  ./sum.test.js
-✓ adds 1 + 2 to equal 3 (5ms)
+//Write a failing test before writing implementation logic (don't event need to load anything on browser initially)
+//Install JEST - for testing inside React Applications while using 'npx create-react-app my-app' Jest comes with React so we need to only add react-test-renderer for rendering snapshots
+//Run:
+//If we are using yarn.... npm i -g yarn
+npm i --save-dev react-test-renderer //or yarn add --dev react-test-renderer
+npm i -D --exact jest-watch-typeahead@0.6.5 //You need to install specifically v0.6.5 of jest-watch-typeahead
+//Install ENZYME
+//You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
+//Run:
+npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Jest - Basic Use Case*/
+import react from 'react';
+import {render} from "@testing-library/react"
+import App from "./App";
 
-/*Common Testing Functions and Practices - UNIT TESTS*/
+describe('Counter Testing', () => { //describe will combine related tests into one block
+  test('renders the title of counter', () => { //say what the test will be
+    const { getByText } = render(<App />); //this getByText function will grab this component as text
+    const linkElement = getByText('This is counter app'); //getByText will find 'This is counter app' within the component
+    expect(linkElement).toBeInTheDocument();
+  });
+});
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Enzyme setupTest.js Configuration
+//Import configure and adapter into setupTests.js
+//and also configure new adapter in setupTests.js
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+configure({ adapter: new Adapter() });
+
+//Import shallow into the MyComponent.test.js file
+import { shallow } from "enzyme";
+
+//Enzyme - Use Shallow - Basic Use Case*/
+/*Enzyme Allows us to grab element from any selector (id, class, attribute, text, etc...*/
+import react from 'react';
+import { render } from "@testing-library/react"
+import App from "./App";
+import { shallow } from 'enzyme';
+
+//Should be in our setup file
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+configure({ adapter: new Adapter() });
+  
+describe("Counter Testing", () => {
+  //remember, we can swap <App /> out with any other component or element (e.g. if you refactor and want to swap <App /> with <Counter /> we will get same results if shallow code is the same)
+  let wrapper; //want wrapper to be accessible by any test so we declare it outside beforeEach()
+  beforeEach(() => { //use before each whenever we want to have something happen before each test
+    wrapper = mount(<App />); //if we use mount() over shallow() we will get everything inside the <App /> component AND the components inside the <App /> component (e.g. everything inside <Counter />)
+    //can replace mount() with shallow()
+  });
+
+  test('render the title of counter', () => {
+      const wrapper = shallow(<App />); //Wrapper is a convention - shapper will only render the outter part of the component //It will not go inside other elements or components inside rendered component
+      console.log(wrapper.debug()) //we can check what is inside wrapper with the debug function //It will print contents to log
+      expect(wrapper.find('h1').text()).toContain("This is counter app") //the find method functions the same as jquery as far as selectors go //this will return the text of 'h1' and expect it to contain the text we asked for
+    });
+  
+  test("render the initial value of state in a div", () => {
+    expect(wrapper.find("#counter-value").text()).toBe("0");
+  });
+
+  test("render the click event of increment button and increment counter value", () => {
+    wrapper.find("#increment-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("1");
+  });
+
+  test("render the click event of decrrment button and decrement counter value", () => {
+    wrapper.find("#increment-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("1");
+    wrapper.find("#decrement-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("0");
+  });
+
+})
+});
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*UNIT TESTS - Common Testing Functions and Practices*/
 //Testing small parts of the code
 //Testing a function
 //Priorities - https://testing-library.com/docs/queries/about/#priority
@@ -192,7 +159,6 @@ PASS  ./sum.test.js
 screen.debug() //esentially console.logs the body
 screen.getByRole('') //finds an accessible element with this string, can use this to see what roles are available in each element (text-box, button, etc)
 expect(screen.getByRole('button', {name: /pay/i}).toBeDisabled()); //will look for a button with the name with pay that is enabled (case insensitive search)
-
 /*Waiting for Elements to Load*/
 //When using Async Await to find an element we need to use the findByRole() function instead of getByRole function
 //Here our button is enabled for a fraction of a second which gives our test false positives
@@ -200,7 +166,6 @@ test('on initial render, the pay button is disabled', async () => {
   render(<TransactionCreateStepTwo sender={{ id: '5'}} receiver={{ id: '5'}}/>)
   expect(await screen.findByRole('button', {name: /pay/i}).toBeDisabled()); //will look for a button with the name with pay that is disabled (case insensitive search)
 })
-
 //ARRANGE --> ACT --> ASSERT Testing Pattern
 //First phase of test we are arranging things (rendering component)
 //Second phase we are acting the user is typing, clicking, interacting
@@ -214,8 +179,8 @@ test('if an amount and note is entered, the pay button is enabled', () => {
   userEvent.type(screen.getByPlaceholderText(/note/i), "This is a note");
   expect(await screen.findByRole('button', {name: /pay/i}).toBeEnabled()); //will look for a button with the name with pay that is enabled (case insensitive search)
 })
-
-/*Common Testing Functions and Practices - INTEGRATION TESTS*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*INTEGRATION TESTS - Testing Functions and Practices*/
 //Testing that multiple units in application are working correctly together*/
 //Combining multiple unit test together*/
 //Think about REALISTIC user flows
@@ -234,8 +199,8 @@ test('if an amount and note is entered, the pay button is enabled', () => {
   userEvent.type(screen.getByPlaceholderText(/note/i), "This is a note");
   expect(await screen.findByRole('button', {name: /pay/i}).toBeEnabled()); //will look for a button with the name with pay that is enabled (case insensitive search)
 })
-
-/*Common Testing Functions and Practices - END TO END TESTS*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*END TO END TESTS - Common Testing Functions and Practices*/
 //Setup cypress -- npm install -save--dev @testing-library/cypress
 //npm run cypress open
 //remove default tests by going to cypress folder and in integration remove those two folders
@@ -248,32 +213,120 @@ describe('payment', () => {
 
   })
 })
+/***********DEEP DIVE***********/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Enzyme Testing React Apps*/
+//You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
+npm i --save-dev enzyme enzyme-adapter-react-16
+//Each adapter may have additional peer dependencies which you will need to install as well. For instance, enzyme-adapter-react-16 has peer dependencies on react and react-dom.
+/*Shallow Rendering*/
+//Here you want to isolate test to a single component
+import React from 'react';
+import { expect } from 'chai';
+import { shallow } from 'enzyme';
+import sinon from 'sinon';
 
+import MyComponent from './MyComponent';
+import Foo from './Foo';
 
-/*JEST and Enzyme Element Checks - Use Shallow*/
-describe('Header Testing', () => {
-  test('render header h1 - Name', () => {
-    const { getByText } = render(<Header />);
-    const h1Element = getByText('Name');
-    expect(h1Element).toBeInTheDocument();
+describe('<MyComponent />', () => {
+  it('renders three <Foo /> components', () => {
+    const wrapper = shallow(<MyComponent />);
+    expect(wrapper.find(Foo)).to.have.lengthOf(3);
   });
-  test('render header h2 - MLB Bucket List', () => {
-    const { getByText } = render(<Header />);
-    const h2Element = getByText('MLB Bucket List');
-    expect(h2Element).toBeInTheDocument();
+
+  it('renders an `.icon-star`', () => {
+    const wrapper = shallow(<MyComponent />);
+    expect(wrapper.find('.icon-star')).to.have.lengthOf(1);
   });
-  /*Enzyme Allows us to grab element from any selector (id, class, attribute, text, etc...*/
-  test('render header h1 - Name with shallow', () => {
-    const wrapper = shallow(<Header />);
-    expect(wrapper.find('H1').text()).toContain("Name")
+
+  it('renders children when passed in', () => {
+    const wrapper = shallow((
+      <MyComponent>
+        <div className="unique" />
+      </MyComponent>
+    ));
+    expect(wrapper.contains(<div className="unique" />)).to.equal(true);
   });
-  test('render header h2 - MLB Bucket List with Shallow', () => {
-    const wrapper = shallow(<Header />);
-    expect(wrapper.find('H2').text()).toContain("MLB Bucket List")
+
+  it('simulates click events', () => {
+    const onButtonClick = sinon.spy();
+    const wrapper = shallow(<Foo onButtonClick={onButtonClick} />);
+    wrapper.find('button').simulate('click');
+    expect(onButtonClick).to.have.property('callCount', 1);
   });
 });
-////////////////
+/*Full DOM Rendering*/
+//Can test for lifecycle renders
+import React from 'react';
+import sinon from 'sinon';
+import { expect } from 'chai';
+import { mount } from 'enzyme';
+
+import Foo from './Foo';
+
+describe('<Foo />', () => {
+  it('allows us to set props', () => {
+    const wrapper = mount(<Foo bar="baz" />);
+    expect(wrapper.props().bar).to.equal('baz');
+    wrapper.setProps({ bar: 'foo' });
+    expect(wrapper.props().bar).to.equal('foo');
+  });
+
+  it('simulates click events', () => {
+    const onButtonClick = sinon.spy();
+    const wrapper = mount((
+      <Foo onButtonClick={onButtonClick} />
+    ));
+    wrapper.find('button').simulate('click');
+    expect(onButtonClick).to.have.property('callCount', 1);
+  });
+
+  it('calls componentDidMount', () => {
+    sinon.spy(Foo.prototype, 'componentDidMount');
+    const wrapper = mount(<Foo />);
+    expect(Foo.prototype.componentDidMount).to.have.property('callCount', 1);
+    Foo.prototype.componentDidMount.restore();
+  });
+});
+/*Static Rendered Markup*/
+//Render react components to static HTML
+import React from 'react';
+import { expect } from 'chai';
+import { render } from 'enzyme';
+
+import Foo from './Foo';
+import { maxHeaderSize } from "http"
+
+describe('<Foo />', () => {
+  it('renders three `.foo-bar`s', () => {
+    const wrapper = render(<Foo />);
+    expect(wrapper.find('.foo-bar')).to.have.lengthOf(3);
+  });
+
+  it('renders the title', () => {
+    const wrapper = render(<Foo title="unique" />);
+    expect(wrapper.text()).to.contain('unique');
+  });
+});
+/*React Hooks support*/
+//Enzyme supports react hooks with some limitations in .shallow() due to upstream issues in React's shallow renderer:
+//useEffect() and useLayoutEffect() don't get called in the React shallow renderer.
+//useCallback() doesn't memoize callback in React shallow renderer.
+//If you're using React 16.8+ and .mount(), Enzyme will wrap apis including .simulate(), .setProps(), .setContext(), .invoke() with ReactTestUtils.act() so you don't need to manually wrap it.
+//A common pattern to trigger handlers with .act() and assert is:
+const wrapper = mount(<SomeComponent />);
+act(() => wrapper.prop('handler')());
+wrapper.update();
+expect(/* ... */);
+//We cannot wrap the result of .prop() (or .props()) with .act() in Enzyme internally since it will break the equality of the returned value.
+//However, you could use .invoke() to simplify the code:
+const wrapper = mount(<SomeComponent />);
+wrapper.invoke('handler')();
+expect(/* ... */);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*E2E Testing With Cypress*/
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*JEST Matchers*/
@@ -953,113 +1006,69 @@ However, in some cases, for example when testing react-native's components we ar
 Another option is to swizzle the console.warn and suppress specific warnings.*/
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Enzyme Testing React Apps*/
+/*JEST Setup Kent C Dodds*/
 ////////////////
-//You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
-npm i --save-dev enzyme enzyme-adapter-react-16
-//Each adapter may have additional peer dependencies which you will need to install as well. For instance, enzyme-adapter-react-16 has peer dependencies on react and react-dom.
-/*Shallow Rendering*/
-//Here you want to isolate test to a single component
-import React from 'react';
-import { expect } from 'chai';
-import { shallow } from 'enzyme';
-import sinon from 'sinon';
+import { getHeapStatistics } from "v8"
+//run code:
+npm install --save dev jest
+//add a test script
+//run jest in that test script.
+"scripts": {
+    "test": "jest",
+    "dev": "webpack-serve",
+    "build": "webpack --mode=production",
+    "postbuild": "cp ./public/index.html ./dist/index.html",
+    "start": "serve --no-clipboard --listen 8080 dist",
+    "lint": "eslint .",
+    "format": "prettier \"**/*.js\" --write",
+    "validate": "npm run lint && npm run test && npm run build",
+    "setup": "npm run setup && npm run validate"
+}
+//in terminal npm run test or npm test or npm t.
+//you'll get this error that says "no files found."
+//of 15 files none of them matched this test match and so it didn't run any of our files as test. Let's go ahead and create that test file. We'll put it right in the source directory here(src folder)
+//create a new directory __tests__ and that will match the testMatch glob in the terminal
+//example.js. to the file name
+//we'll just make a test that says, "It works."
+test('it works', () => {})
+//run our test script again and it runs our example. 
+//We can also move this file right here(outside of the __test__ folder) and name it with a .test, and that will work just as well
+//We want to co-locate the test to where the file is that it's testing as close as possible. You will find that I put my test directory right next to the file that's being tested.
+//One other thing that I want to do here is if we check out my travesty YAML file, the CI configure here, we have this script that runs NPM run setup.
+//That setup script is going to run install and then validate, and that validates that the project is in a working state. 
+//Right now, it's running the linting and the build. I wanted to also run the test. If the linting passes, I'm going to have it run the test script. 
+//run npm run validate, it's going to run the linting first, it'll run the test, and then it'll run the build.
 
-import MyComponent from './MyComponent';
-import Foo from './Foo';
+/*Configure Jest's Test Environment for testing Node or Browser code*/
+//Create new file in root directory
+jest.config.js
+//Within file add the following
+//Be explicit about the environment to emulate the most real environment possible
+module.exports = {
+    testEnvironment: 'jest-environment-node' //can add jsdom at the end to explicitly make the environment brower based
+}
 
-describe('<MyComponent />', () => {
-  it('renders three <Foo /> components', () => {
-    const wrapper = shallow(<MyComponent />);
-    expect(wrapper.find(Foo)).to.have.lengthOf(3);
-  });
+/* Support Importing CSS Files W/ Jest's moduleNameMapper*/
+//Need to use moduleNameMapper so we can map modules that end in .css to a different module (mock version of module) so it can be stebbed out and we can require this file in our test
+//Open jest.config.js
+//We'll say anything that ends in .css and this is a Rejex pattern here, we want to require resolve.
+module.exports = {
+    testEnvironment: 'jest-environment-jsdom',
+    moduleNameMapper: {
+      '\\.css$': require.resolve('./test/style-mock.js'),
+    },
+  }
 
-  it('renders an `.icon-star`', () => {
-    const wrapper = shallow(<MyComponent />);
-    expect(wrapper.find('.icon-star')).to.have.lengthOf(1);
-  });
-
-  it('renders children when passed in', () => {
-    const wrapper = shallow((
-      <MyComponent>
-        <div className="unique" />
-      </MyComponent>
-    ));
-    expect(wrapper.contains(<div className="unique" />)).to.equal(true);
-  });
-
-  it('simulates click events', () => {
-    const onButtonClick = sinon.spy();
-    const wrapper = shallow(<Foo onButtonClick={onButtonClick} />);
-    wrapper.find('button').simulate('click');
-    expect(onButtonClick).to.have.property('callCount', 1);
-  });
-});
-/*Full DOM Rendering*/
-//Can test for lifecycle renders
-import React from 'react';
-import sinon from 'sinon';
-import { expect } from 'chai';
-import { mount } from 'enzyme';
-
-import Foo from './Foo';
-
-describe('<Foo />', () => {
-  it('allows us to set props', () => {
-    const wrapper = mount(<Foo bar="baz" />);
-    expect(wrapper.props().bar).to.equal('baz');
-    wrapper.setProps({ bar: 'foo' });
-    expect(wrapper.props().bar).to.equal('foo');
-  });
-
-  it('simulates click events', () => {
-    const onButtonClick = sinon.spy();
-    const wrapper = mount((
-      <Foo onButtonClick={onButtonClick} />
-    ));
-    wrapper.find('button').simulate('click');
-    expect(onButtonClick).to.have.property('callCount', 1);
-  });
-
-  it('calls componentDidMount', () => {
-    sinon.spy(Foo.prototype, 'componentDidMount');
-    const wrapper = mount(<Foo />);
-    expect(Foo.prototype.componentDidMount).to.have.property('callCount', 1);
-    Foo.prototype.componentDidMount.restore();
-  });
-});
-/*Static Rendered Markup*/
-//Render react components to static HTML
-import React from 'react';
-import { expect } from 'chai';
-import { render } from 'enzyme';
-
-import Foo from './Foo';
-import { maxHeaderSize } from "http"
-
-describe('<Foo />', () => {
-  it('renders three `.foo-bar`s', () => {
-    const wrapper = render(<Foo />);
-    expect(wrapper.find('.foo-bar')).to.have.lengthOf(3);
-  });
-
-  it('renders the title', () => {
-    const wrapper = render(<Foo title="unique" />);
-    expect(wrapper.text()).to.contain('unique');
-  });
-});
-/*React Hooks support*/
-//Enzyme supports react hooks with some limitations in .shallow() due to upstream issues in React's shallow renderer:
-//useEffect() and useLayoutEffect() don't get called in the React shallow renderer.
-//useCallback() doesn't memoize callback in React shallow renderer.
-//If you're using React 16.8+ and .mount(), Enzyme will wrap apis including .simulate(), .setProps(), .setContext(), .invoke() with ReactTestUtils.act() so you don't need to manually wrap it.
-//A common pattern to trigger handlers with .act() and assert is:
-const wrapper = mount(<SomeComponent />);
-act(() => wrapper.prop('handler')());
-wrapper.update();
-expect(/* ... */);
-//We cannot wrap the result of .prop() (or .props()) with .act() in Enzyme internally since it will break the equality of the returned value.
-//However, you could use .invoke() to simplify the code:
-const wrapper = mount(<SomeComponent />);
-wrapper.invoke('handler')();
-expect(/* ... */);
+/*Support using Webpack CSS Modules with Jest*/
+//add this line ('\\.module\\.css$': 'identity-obj-proxy',) to our moduleNameMapper
+//Instead of actually importing auto-scaling-text.module.css, it's going to import identity-obj-proxy.
+//What that is going to do is it will return a string for the path that was accessed for this particular module. 
+//That makes our test a lot easier to debug. 
+//It allows us to make some assertions on the class name that's going to be applied, even though that class name is going to be generated at run time.
+module.exports = {
+    testEnvironment: 'jest-environment-jsdom',
+    moduleNameMapper: {
+      '\\.module\\.css$': 'identity-obj-proxy',
+      '\\.css$': require.resolve('./test/style-mock.js'),
+    }
+  }
