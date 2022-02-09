@@ -3,18 +3,6 @@
 /////////////
 //Check if app behaves as expected, safeguard against unwanted behavior when changes maxHeaderSize, automated and efficient in the long term.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*WHAT TO TEST??*/
-/////////////////
-/*START TESTING FROM THE BOTTOM UP (CONCISE TO BIGGER PICTURE)*/
-/*Test High Value Features (Most Important Features) and Edge Cases in High Value Features*/
-/*Things that are EASY to break*/
-/*Basic React Component Testing
-  ---> User Interactions
-  ---> Conditional Rendering
-  ---> Uils / Hooks*/
-/*DONT TEST Implementation Details (a decision that is left to be made by the developers, and is not specified at an earlier level (such as a requirement document or, depending on context, an architectural document))
-  ---> Changes for variables and state (etc)*/
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Are All Use Cases Accounted For?*/
 ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +69,35 @@ npm i -D --exact jest-watch-typeahead@0.6.5 //You need to install specifically v
 //You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
 //Run:
 npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme 
+//Install Testing Playground
+//Install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*What to test?*/
+/////////////////
+/*Test High Value Features (Most Important Features)*/
+/*Test Edge Cases in High Value Features (how can they break a form or the UI? test for errors that should throw graceful error messages)*/
+/*Things that are EASY to break*/
+/*Basic React Component Testing
+  ---> User Interactions
+  ---> Conditional Rendering
+  ---> Uils / Hooks*/
+/*DONT TEST Implementation Details (a decision that is left to be made by the developers, and is not specified at an earlier level (such as a requirement document or, depending on context, an architectural document))
+  ---> Changes for variables and state (etc)*/
+/*Testing from Bottom of LIST UP: Unit --> Integration --> E2E*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Testing Priorities*/
+//Use screen.getByRole('') to find an accessible element with this string, can use this to see what roles are available in each element (text-box, button, etc)
+//See https://testing-library.com/docs/queries/about/#priority
+//Preference should be getByRole
+//Forms should use getByLabelText
+//If no labe use getByPlaceholderText
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Triple A's of Testing*/
+//ARRANGE --> ACT --> ASSERT Testing Pattern
+//First phase of test we are arranging things (rendering component)
+//Second phase we are acting the user is typing, clicking, interacting
+//Third phase we are asserting where we are going to make our assertions
+//emulate a user event (here we are typing into a input field)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Jest - Basic Use Case*/
 import react from 'react';
@@ -159,20 +176,20 @@ describe("Counter Testing", () => {
 screen.debug() //esentially console.logs the body
 screen.getByRole('') //finds an accessible element with this string, can use this to see what roles are available in each element (text-box, button, etc)
 expect(screen.getByRole('button', {name: /pay/i}).toBeDisabled()); //will look for a button with the name with pay that is enabled (case insensitive search)
-/*Waiting for Elements to Load*/
+/*Basic Test*/
+import userEvent from "@testing-library/user-event";
+test('on initial render, the pay button is disabled', () => {
+  render(<TransactionCreateStepTwo sender={{ id: '5'}} receiver={{ id: '5'}}/>) //can throw in props if the component expects props
+  expect(screen.getByRole('button', {name: /pay/i}).toBeDisabled()); //will look for a button with the name with pay that is disabled (case insensitive search)
+})
+/*Waiting for Elements to Load - Deeper Dive Unit Tests*/
 //When using Async Await to find an element we need to use the findByRole() function instead of getByRole function
 //Here our button is enabled for a fraction of a second which gives our test false positives
+import userEvent from "@testing-library/user-event";
 test('on initial render, the pay button is disabled', async () => {
-  render(<TransactionCreateStepTwo sender={{ id: '5'}} receiver={{ id: '5'}}/>)
+  render(<TransactionCreateStepTwo sender={{ id: '5'}} receiver={{ id: '5'}}/>) //can throw in props if the component expects props
   expect(await screen.findByRole('button', {name: /pay/i}).toBeDisabled()); //will look for a button with the name with pay that is disabled (case insensitive search)
 })
-//ARRANGE --> ACT --> ASSERT Testing Pattern
-//First phase of test we are arranging things (rendering component)
-//Second phase we are acting the user is typing, clicking, interacting
-//Third phase we are asserting where we are going to make our assertions
-//emulate a user event (here we are typing into a input field)
-import userEvent from "@testing-library/user-event";
-
 test('if an amount and note is entered, the pay button is enabled', () => {
   render(<TransactionCreateStepTwo sender={{ id: '5'}} receiver={{ id: '5'}}/>)
   userEvent.type(screen.getByPlaceholderText(/amount/i), "50");
@@ -201,19 +218,98 @@ test('if an amount and note is entered, the pay button is enabled', () => {
 })
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*END TO END TESTS - Common Testing Functions and Practices*/
-//Setup cypress -- npm install -save--dev @testing-library/cypress
-//npm run cypress open
+//install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
+//everyting in cypress will always use find vs get which we are used to in Jest
+//setup cypress -- npm install -save--dev @testing-library/cypress OR yarn add -D cypress @testing-library/cypress (-D makes it a deve dependency)
+//npm run cypress open OR yarn run crypress open
 //remove default tests by going to cypress folder and in integration remove those two folders
 //want to add the react-testing-library cypress commands -- go to support folder --> command.js and add the following:
 import "@testing-library/cypress/add-commands"
-//can start writing tests by going to cypress folder and in integration directory create a  file (e.g. payment_spec.js)
-//first thing we want to do is plan the test
+//can start writing tests by going to cypress folder and in integration directory create a file (e.g. payment_spec.js)
 describe('payment', () => {
   it('user can make payment', () => {
-
+    //go through a use case yourself to see what you would do then write down the steps you want to emulate
+    //login
+    //check account balance
+    //click on pay button
+    //search for user
+    //add amount and note and click pay
+    //return to transactions
+    //go to personal payments tab
+    //click on payment
+    //verify if payment was made
+    //verify if payment amount was deducted
   })
 })
-/***********DEEP DIVE***********/
+//inside cypress window you can go to the payment_spec.js and click Run 1 integration spec (we are using the Electron environment but you can test within other environments)
+const { v4: uuidv4 } = require('uuid'); //this import allows use to create unique identifiers
+
+describe('payment', () => {
+    it('user can make payment', () => {
+        //  login
+        cy.visit('/'); //this will ensure user visits the root of our app
+        cy.findByRole('textbox', { name: /username/i }).type('johndoe');
+        cy.findByLabelText(/password/i).type('s3cret');
+        cy.findByRole('checkbox', { name: /remember me/i }).check();
+        cy.findByRole('button', { name: /sign in/i }).click();
+
+        //the account balance is dynamic and there are no real details in cypress
+        //if you go to Open Selector Playground which looks like a target in the cypress browser, click on the amount ot the dynamic element and cypress will give you a data test id like this [data-test-sidenav-user-balance]
+        //we want to grab and use this on our cy.get functions cy.get('[data-test=sidenav-user-balance]')
+        //once we grab it we can search our directory for it
+        //use test-id as a last resport the more your tests resembles the way a user will use it the better
+        
+        // check account balance
+        let oldBalance; //later we will use the current balance and compare these
+        cy.get('[data-test=sidenav-user-balance]').then($balance => oldBalance = $balance.text()).then($balance => console.log($balance)); //set old balance to the current balance - we don't need the console.log but can check the balance to make sure it is working correctly
+
+        // click on new button - opens a new page where we can select a user name to send a new payment
+        cy.findByRole('button', { name: /new/i }).click();
+
+        // search for user and then click the user
+        cy.findByRole('textbox').type('devon becker');
+        cy.findByText(/devon becker/i).click();
+
+        // add amount and note and click pay
+        const paymentAmount = "5.00";
+        cy.findByPlaceholderText(/amount/i).type(paymentAmount);
+        const note = uuidv4();
+        cy.findByPlaceholderText(/add a note/i).type(note); //this uuidv4() function allows use to create unique identifiers - must import the library see top of component
+        cy.findByRole('button', { name: /pay/i }).click();
+
+        // return to transactions
+        cy.findByRole('button', { name: /return to transactions/i }).click();
+
+        // go to personal payments
+        cy.findByRole('tab', { name: /mine/i }).click();
+
+        //potential errors if an element covers another element you will get an error
+        //you can use scrollIntoView() to resolve this issue
+        //if error occurs try to see if element is available in your REAL browser and if it is then force cypress to move forward with clicking of the element that is covered via {force: true} configuration within click() function
+
+        // click on payment
+        cy.findByText(note).click({ force: true }); //want to click on the unique text we created as it should be there now
+
+        // verify if payment was made
+        cy.findByText(`-$${paymentAmount}`).should('be.visible'); //check if '-$50.00' is visible on the screen - ASSERTIONS SUCCESS!
+        cy.findByText(note).should('be.visible'); //chec if note is on the screen - ASSERTIONS SUCCESS!
+
+        // verify if payment amount was deducted
+        cy.get('[data-test=sidenav-user-balance]').then($balance => {
+            const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, "")); //replace the '$' sign and ',' globally with empty string
+            const convertedNewBalance = parseFloat($balance.text().replace(/\$|,/g, "")); //need to convert new balance to text or it wont work
+            expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount)); //create our own assertion - lookup 'to' keyword and 'equal' keyword
+        });
+    });
+});
+
+//REVIEW
+//is app working as expected?
+//did we test high value features?
+//can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
+//ensure test are acting as a safegaurd against unwanted behavior in our tests
+
+/***********DEEP DIVE JEST & ENZYME***********/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Enzyme Testing React Apps*/
 //You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
