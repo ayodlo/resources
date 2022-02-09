@@ -60,7 +60,7 @@
 ////////////////
 //Create test before writing your actual code
 //Write a failing test before writing implementation logic (don't event need to load anything on browser initially)
-//Install JEST - for testing inside React Applications while using 'npx create-react-app my-app' Jest comes with React so we need to only add react-test-renderer for rendering snapshots
+//Install JEST - for testing inside React Applications while using 'npx create-react-app my-app' Jest and react-testing-library comes with React so we need to only add react-test-renderer for rendering snapshots
 //Run:
 //If we are using yarn.... npm i -g yarn
 npm i --save-dev react-test-renderer //or yarn add --dev react-test-renderer
