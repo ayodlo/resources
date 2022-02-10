@@ -88,9 +88,17 @@ npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme
 /*Testing Priorities*/
 //Use screen.getByRole('') to find an accessible element with this string, can use this to see what roles are available in each element (text-box, button, etc)
 //See https://testing-library.com/docs/queries/about/#priority
-//Preference should be getByRole
-//Forms should use getByLabelText
-//If no labe use getByPlaceholderText
+//The point is to mimic the user interaction as much as possible within our tests
+//Accessible by Everyone
+getByRole
+getByLabelText //good for forms
+getByPlaceholderText
+getByText
+//Semantic Queries - users wont be seeing but they can be read by screen readers
+getByAltText
+getByTitle
+//Test ID - users will never see the test id or find elements by test id
+getByTestId
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Triple A's of Testing*/
 //ARRANGE --> ACT --> ASSERT Testing Pattern
@@ -112,59 +120,112 @@ describe('Counter Testing', () => { //describe will combine related tests into o
   });
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Enzyme setupTest.js Configuration
-//Import configure and adapter into setupTests.js
-//and also configure new adapter in setupTests.js
-import { configure } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
-configure({ adapter: new Adapter() });
-
-//Import shallow into the MyComponent.test.js file
-import { shallow } from "enzyme";
-
-//Enzyme - Use Shallow - Basic Use Case*/
-/*Enzyme Allows us to grab element from any selector (id, class, attribute, text, etc...*/
-import react from 'react';
-import { render } from "@testing-library/react"
-import App from "./App";
-import { shallow } from 'enzyme';
-
-//Should be in our setup file
-import { configure } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
-configure({ adapter: new Adapter() });
-  
-describe("Counter Testing", () => {
-  //remember, we can swap <App /> out with any other component or element (e.g. if you refactor and want to swap <App /> with <Counter /> we will get same results if shallow code is the same)
-  let wrapper; //want wrapper to be accessible by any test so we declare it outside beforeEach()
-  beforeEach(() => { //use before each whenever we want to have something happen before each test
-    wrapper = mount(<App />); //if we use mount() over shallow() we will get everything inside the <App /> component AND the components inside the <App /> component (e.g. everything inside <Counter />)
-    //can replace mount() with shallow()
-  });
-
-  test('render the title of counter', () => {
-      const wrapper = shallow(<App />); //Wrapper is a convention - shapper will only render the outter part of the component //It will not go inside other elements or components inside rendered component
-      console.log(wrapper.debug()) //we can check what is inside wrapper with the debug function //It will print contents to log
-      expect(wrapper.find('h1').text()).toContain("This is counter app") //the find method functions the same as jquery as far as selectors go //this will return the text of 'h1' and expect it to contain the text we asked for
-    });
-  
-  test("render the initial value of state in a div", () => {
-    expect(wrapper.find("#counter-value").text()).toBe("0");
-  });
-
-  test("render the click event of increment button and increment counter value", () => {
-    wrapper.find("#increment-btn").simulate("click");
-    expect(wrapper.find("#counter-value").text()).toBe("1");
-  });
-
-  test("render the click event of decrrment button and decrement counter value", () => {
-    wrapper.find("#increment-btn").simulate("click");
-    expect(wrapper.find("#counter-value").text()).toBe("1");
-    wrapper.find("#decrement-btn").simulate("click");
-    expect(wrapper.find("#counter-value").text()).toBe("0");
-  });
-
+/*USEFUL SELECTORS*/
+//screen looks in the dom/component we render and gives us a bunch of methods to get certain elements that we want from the component we render
+it('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
 })
+
+//common selectors
+getBy(); //returns one match - error if none or more than one found - cannot use async
+findBy(); //returns one match - error if none or more than one found - can use async
+queryBy(); //returns one match - returns null if none found - error if more than one found - cannot use async
+getAllBy(); //returns array if one or more found - error if none found - cannot use async
+findAllBy(); //returns array if one or more found - error if none found - can use async
+queryAllBy(); //returns array if one or more found - cannot use async
+
+//Examples
+import { render, screen } from '@testing-library/react';
+import Header from '../Header';
+
+describe("Header", () => {
+    it('should render same text passed into title prop', () => {
+        render(
+            <Header 
+              title="todo"
+            />
+        );
+        const h1Element = screen.getByText(/todo/i);
+        expect(h1Element).toBeInTheDocument();
+    });
+})
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Element = screen.getByRole("heading");
+    expect(h1Element).toBeInTheDocument();
+});
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Element = screen.getByRole("heading", { name: /todo/i });
+    expect(h1Element).toBeInTheDocument();
+});
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Element = screen.getByTitle("Header");
+    expect(h1Element).toBeInTheDocument();
+});
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h2Element = screen.getByTestId("header-2");
+    expect(h2Element).toBeInTheDocument();
+});
+
+// // WITH FINDBY
+
+it('should render same text passed into title prop', async () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Element = await screen.findByText(/todo/i);
+    expect(h1Element).toBeInTheDocument();
+});
+
+// // WITH QUERYBY
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Element = screen.queryByText(/dogs/i);
+    expect(h1Element).not.toBeInTheDocument
+});
+
+// // WITH GETALLBY
+
+it('should render same text passed into title prop', () => {
+    render(
+        <Header 
+          title="todo"
+        />
+    );
+    const h1Elements = screen.getAllByText(/todo/i);
+    expect(h1Elements.length).toBe(1);
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*UNIT TESTS - Common Testing Functions and Practices*/
@@ -308,7 +369,61 @@ describe('payment', () => {
 //did we test high value features?
 //can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
 //ensure test are acting as a safegaurd against unwanted behavior in our tests
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Enzyme setupTest.js Configuration
+//Import configure and adapter into setupTests.js
+//and also configure new adapter in setupTests.js
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+configure({ adapter: new Adapter() });
 
+//Import shallow into the MyComponent.test.js file
+import { shallow } from "enzyme";
+
+//Enzyme - Use Shallow - Basic Use Case*/
+/*Enzyme Allows us to grab element from any selector (id, class, attribute, text, etc...*/
+import react from 'react';
+import { render } from "@testing-library/react"
+import App from "./App";
+import { shallow } from 'enzyme';
+
+//Should be in our setup file
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+configure({ adapter: new Adapter() });
+  
+describe("Counter Testing", () => {
+  //remember, we can swap <App /> out with any other component or element (e.g. if you refactor and want to swap <App /> with <Counter /> we will get same results if shallow code is the same)
+  let wrapper; //want wrapper to be accessible by any test so we declare it outside beforeEach()
+  beforeEach(() => { //use before each whenever we want to have something happen before each test
+    wrapper = mount(<App />); //if we use mount() over shallow() we will get everything inside the <App /> component AND the components inside the <App /> component (e.g. everything inside <Counter />)
+    //can replace mount() with shallow()
+  });
+
+  test('render the title of counter', () => {
+      const wrapper = shallow(<App />); //Wrapper is a convention - shapper will only render the outter part of the component //It will not go inside other elements or components inside rendered component
+      console.log(wrapper.debug()) //we can check what is inside wrapper with the debug function //It will print contents to log
+      expect(wrapper.find('h1').text()).toContain("This is counter app") //the find method functions the same as jquery as far as selectors go //this will return the text of 'h1' and expect it to contain the text we asked for
+    });
+  
+  test("render the initial value of state in a div", () => {
+    expect(wrapper.find("#counter-value").text()).toBe("0");
+  });
+
+  test("render the click event of increment button and increment counter value", () => {
+    wrapper.find("#increment-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("1");
+  });
+
+  test("render the click event of decrrment button and decrement counter value", () => {
+    wrapper.find("#increment-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("1");
+    wrapper.find("#decrement-btn").simulate("click");
+    expect(wrapper.find("#counter-value").text()).toBe("0");
+  });
+
+})
+});
 /***********DEEP DIVE JEST & ENZYME***********/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Enzyme Testing React Apps*/
@@ -420,10 +535,6 @@ expect(/* ... */);
 const wrapper = mount(<SomeComponent />);
 wrapper.invoke('handler')();
 expect(/* ... */);
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*E2E Testing With Cypress*/
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*JEST Matchers*/
 ////////////////
@@ -1028,6 +1139,7 @@ export default Link;
 import React from 'react';
 import renderer from 'react-test-renderer';
 import Link from '../Link.react';
+import { getByAltText, getByLabelText, getByPlaceholderText, getByRole, getByTestId, getByText, getByTitle } from '@testing-library/dom'
 test('Link changes the class when hovered', () => {
   const component = renderer.create(
     <Link page="http://www.facebook.com">Facebook</Link>,

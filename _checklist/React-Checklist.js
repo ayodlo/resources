@@ -270,8 +270,8 @@ export function client(endpoint, customConfig = {}) {
   };
 
   return window.fetch(`${endpoint}`, config).then(async (response) => {
-    const data = await response.json();
-    if (response.ok) {
+    const data = await response.json(); //response object does not directly include JSON response body so we use the .json() function to get that body from resp object
+    if (response.ok) { //the 'ok' property of resp object will be true if it is in range of 200-299 - see above for more details
       return data;
     } else {
       return Promise.reject(data);
