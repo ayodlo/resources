@@ -121,6 +121,7 @@ describe('Counter Testing', () => { //describe will combine related tests into o
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*USEFUL SELECTORS*/
+///////////////////
 //screen looks in the dom/component we render and gives us a bunch of methods to get certain elements that we want from the component we render
 it('renders learn react link', () => {
   render(<App />);
@@ -192,7 +193,7 @@ it('should render same text passed into title prop', () => {
     expect(h2Element).toBeInTheDocument();
 });
 
-// // WITH FINDBY
+// // WITH FINDBY - we have to add await because findby expects to be async
 
 it('should render same text passed into title prop', async () => {
     render(
@@ -226,6 +227,104 @@ it('should render same text passed into title prop', () => {
     );
     const h1Elements = screen.getAllByText(/todo/i);
     expect(h1Elements.length).toBe(1);
+});
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*USEFUL ASSERTIONS*/
+////////////////////
+import { render, screen } from '@testing-library/react';
+import TodoFooter from "../TodoFooter"
+import { BrowserRouter } from "react-router-dom"
+
+const MockTodoFooter = ({ numberOfIncompleteTasks }) => {
+    return (
+        <BrowserRouter>
+          <TodoFooter 
+            numberOfIncompleteTasks={numberOfIncompleteTasks}
+          />
+        </BrowserRouter>
+    )
+}
+
+describe("TodoFooter", () => {
+  it('should render the correct amount of incomplete tasks', () => {
+    render(
+        <MockTodoFooter 
+          numberOfIncompleteTasks={5}
+        />
+    );
+    const pElement = screen.getByText(/5 tasks left/i);
+    expect(pElement).toBeInTheDocument();
+  });
+
+  it('should render "task" when the number of incomplete tasks is one', () => {
+    render(
+        <MockTodoFooter 
+          numberOfIncompleteTasks={1}
+        />
+    );
+    const pElement = screen.getByText(/1 task left/i);
+    expect(pElement).toBeInTheDocument();
+  });
+})
+
+it('p element should be truthy when the number of incomplete tasks is one', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement).toBeTruthy();
+});
+
+it('"task" should be visible when the number of incomplete tasks is one', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement).toBeVisible();
+});
+
+it('should contain p tag with correct text', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement).toContainHTML('p');
+});
+
+it('should render correct text content', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement).toHaveTextContent("1 task left");
+});
+
+it('should render correct text content', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement).not.toBeFalsy();
+});
+
+it('should render correct text content', () => {
+  render(
+      <MockTodoFooter 
+        numberOfIncompleteTasks={1}
+      />
+  );
+  const pElement = screen.getByText(/1 task left/i);
+  expect(pElement.textContent).toBe("1 task left");
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*UNIT TESTS - Common Testing Functions and Practices*/
