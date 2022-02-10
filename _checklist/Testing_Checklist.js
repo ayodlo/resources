@@ -107,6 +107,32 @@ getByTestId
 //Third phase we are asserting where we are going to make our assertions
 //emulate a user event (here we are typing into a input field)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Describe and Testing*/
+//combine common test within describe block
+//can nest describe blocks as needed
+describe("TodoFooter", () => {
+  it('should render the correct amount of incomplete tasks', () => {
+    render(
+        <MockTodoFooter 
+          numberOfIncompleteTasks={5}
+        />
+    );
+    const pElement = screen.getByText(/5 tasks left/i);
+    expect(pElement).toBeInTheDocument();
+  });
+
+  it('should render "task" when the number of incomplete tasks is one', () => {
+    render(
+        <MockTodoFooter 
+          numberOfIncompleteTasks={1}
+        />
+    );
+    const pElement = screen.getByText(/1 task left/i);
+    expect(pElement).toBeInTheDocument();
+  });
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Jest - Basic Use Case*/
 import react from 'react';
 import {render} from "@testing-library/react"
@@ -326,6 +352,220 @@ it('should render correct text content', () => {
   const pElement = screen.getByText(/1 task left/i);
   expect(pElement.textContent).toBe("1 task left");
 });
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*FIRING EVENTS*/
+////////////////
+import { render, screen, fireEvent } from '@testing-library/react'; //using the fireEvent function to fire an event!
+import AddInput from "../AddInput"
+
+//We don't care about the setTodo function in the component we just mock it as its a required prop for the component addInput
+const mockedSetTodo = jest.fn();
+
+describe("AddInput", () => {
+    it('should render input element', () => {
+        render(
+            <AddInput 
+                todos={[]}
+                setTodos={mockedSetTodo}
+            />
+        );
+        const inputElement = screen.getByPlaceholderText(/Add a new task here.../i);
+        expect(inputElement).toBeInTheDocument();
+    });
+    
+    it('should be able to type into input', () => {
+        render(
+            <AddInput 
+                todos={[]}
+                setTodos={mockedSetTodo}
+            />
+        );
+        const inputElement = screen.getByPlaceholderText(/Add a new task here.../i);
+        fireEvent.click(inputElement)
+        fireEvent.change(inputElement, { target: { value: "Go Grocery Shopping" } }) //changing the inputElements target value to "Go Grocery Shopping"
+        expect(inputElement.value).toBe("Go Grocery Shopping");
+    });
+    
+    it('should be able to type into input', () => {
+        render(
+            <AddInput 
+                todos={[]}
+                setTodos={mockedSetTodo}
+            />
+        );
+        const inputElement = screen.getByPlaceholderText(/Add a new task here.../i);
+        fireEvent.click(inputElement)
+        fireEvent.change(inputElement, { target: { value: "Go Grocery Shopping" } });
+        const buttonElement = screen.getByRole("button", { name: /Add/i});
+        fireEvent.click(buttonElement)
+        expect(mockedSetTodo).toBeCalled()
+    });
+    
+    it('should have empty input when add button is cliked', () => {
+        render(
+            <AddInput 
+                todos={[]}
+                setTodos={mockedSetTodo}
+            />
+        );
+        const inputElement = screen.getByPlaceholderText(/Add a new task here.../i);
+        fireEvent.change(inputElement, { target: { value: "Go Grocery Shopping" } });
+        const buttonElement = screen.getByRole("button", { name: /Add/i});
+        fireEvent.click(buttonElement)
+        expect(inputElement.value).toBe("")
+    });
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*INTEGRATION AND TESTING STYLES*/
+/////////////////////////////////
+import { render, screen, fireEvent } from '@testing-library/react';
+import Todo from "../Todo"
+import { BrowserRouter } from "react-router-dom"
+
+const MockTodo = () => {
+    return (
+        <BrowserRouter>
+          <Todo/>
+        </BrowserRouter>
+    )
+}
+
+const addTask = (tasks) => {
+    const inputElement = screen.getByPlaceholderText(/Add a new task here.../i);
+    const buttonElement = screen.getByRole("button", { name: /Add/i} );
+    tasks.forEach((task) => {
+        fireEvent.change(inputElement, { target: { value: task } });
+        fireEvent.click(buttonElement);
+    })
+}
+
+it('should be able to type into input', () => {
+    render(
+        <MockTodo />
+    );
+    addTask(["Go Grocery Shopping"])
+    const divElement = screen.getByText(/Go Grocery Shopping/i);
+    expect(divElement).toBeInTheDocument()
+});
+
+it('should render multiple items', () => {
+    render(
+        <MockTodo />
+    );
+    addTask(["Go Grocery Shopping", "Go Grocery Shopping", "Go Grocery Shopping"])
+    const divElements = screen.queryAllByText(/Go Grocery Shopping/i);
+    expect(divElements.length).toBe(3)
+});
+
+it('task should not have complete class when initally rendered', () => {
+    render(
+        <MockTodo />
+    );
+    addTask(["Go Grocery Shopping"])
+    const divElement = screen.getByText(/Go Grocery Shopping/i);
+    expect(divElement).not.toHaveClass("todo-item-active")
+});
+
+it('task should have complete class when clicked', () => {
+    render(
+        <MockTodo />
+    );
+    addTask(["Go Grocery Shopping"])
+    const divElement = screen.getByText(/Go Grocery Shopping/i);
+    fireEvent.click(divElement)
+    expect(divElement).toHaveClass("todo-item-active")
+});
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*ASYNC TESTS && MOCKS && BEOFRE AND AFTER EACH HOOKS*/
+/////////////////////////////////
+//Why use mocks?
+//requests cost money
+//requests are slow
+//dont want test to be dependent on externals
+//How to Mock?
+//create a directory called __mocks__ inside the src directory
+//create a file name that has the same name of whatever function we want to mock
+//go to node-modules --> react-scripts --> scripts --> utils --> createJestConfig and set resetMocks to false OR add this to package.json
+"jest": {
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx,ts,tsx}"
+  ],
+  "resetMocks": false
+}
+//here is the example for axios.js mock in the mocks directory
+const mockResponse = {
+  data: {
+      results: [
+          {
+              name: {
+                  first: "Laith",
+                  last: "Harb"
+              },
+              picture: {
+                  large: "https://randomuser.me/api/portraits/men/59.jpg"
+              },
+              login: {
+                  username: "ThePhonyGOAT"
+              }
+          }
+      ]
+  }
+}
+
+
+export default {
+  get: jest.fn().mockResolvedValue(mockResponse) //here we say use a get function that is a jest function that has resolved valueof mockResponse
+}
+
+//within our test file that is using the mock
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import FollowersList from "../FollowersList";
+
+const MockFollowersList = () => {
+    return (
+        <BrowserRouter>
+            <FollowersList />
+        </BrowserRouter>
+    )
+}
+
+describe("FollowersList", () => {
+
+    beforeEach(() => { //hooks need to go inside the describe block
+        console.log("RUNS BEFORE EACH TEST") 
+        jest.mock("../../../__mocks__/axios")
+    })
+
+    beforeAll(() => {
+        console.log("RUNS ONCE BEFORE ALL TESTS")
+    })
+
+    afterEach(() => {
+        console.log("RUNS AFTER EACH TEST")
+    })
+
+    afterAll(() => {
+        console.log("RUNS ONCE AFTER ALL TESTS")
+    })
+
+    it('should fetch and render input element', async () => {
+        render(
+            <MockFollowersList />
+        );
+        const followerDivElement = await screen.findByTestId(`follower-item-0`) //make sure we are adding this test id to our element we want to find - using index in the map function to make test id unique
+        expect(followerDivElement).toBeInTheDocument();
+    });
+    
+    it('should fetch and render input element', async () => {
+        render(
+            <MockFollowersList />
+        );
+    
+        const followerDivElement = await screen.findByTestId(`follower-item-0`)
+        expect(followerDivElement).toBeInTheDocument();
+    });
+})
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*UNIT TESTS - Common Testing Functions and Practices*/
 //Testing small parts of the code
