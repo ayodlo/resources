@@ -179,10 +179,35 @@ Spinner.defaultProps = { 'aria=label': 'loading' };
 //Grid Cell - The space between two adjacent tow and two adjacent column grid lines - a single unit of the grid
 //Grid Track - The space between two adjacent grid lines - think of them as the columns or rows of the grid
 //Grid Area - The total space surrounded by the four grid lines - may be composed of any number of grid cells
+
+/*React Styling Guide*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Two ways to style React components
+//Inline styles is the same as HTML except we use double {{}} to place our styles
+//Property names are camelCased rather than kebab-cased
+<div style={{marginTop: 20, backgroundColor: 'blue'}} />
+//Can also define object ahead of time
+const myStyles = {marginTop: 20, backgroundColor: 'blue'}
+<div style={myStyles} />
+
+//Can also import styles from style sheet and define className prop for element we want styled
+import * as React from 'react'
+import '../box-styles.css'
+
+//Creating custom components with styles is also benificial
+// remember order of styles while using spread is important
+// make style a implementation detail of the component
+function Box({className = '', style, size, ...rest}) {
+  sizeClassName = size ? `box--${size}` : ''; // allowing for custom props that encapsulate our styles
+  return <div className={boxSize} styles={{...style, backgroundColor: 'red', fontStyle: 'italic'}} {...rest}/>
+}
+
+<Box size="small" style={{backgroundColor: 'lightblue'}} id="unique-id">
+  small lightblue box
+</Box>
+
 /*Styled Components*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //install with npm install --save styled-components
 //styled-components utilises tagged template literals to style your components.
-
 /////////////Creating basic styled components////////////
 // Create a Title component that'll render an <h1> tag with some styles
 import styled from 'styled-components';
@@ -204,12 +229,12 @@ render(
     </Title>
   </Wrapper>
 );
+
 /////////////Passing props to components////////////
 const Button = styled.button`
   /* Adapt the colors based on primary prop */
   background: ${props => props.primary ? "palevioletred" : "white"};
   color: ${props => props.primary ? "white" : "palevioletred"};
-
   font-size: 1em;
   margin: 1em;
   padding: 0.25em 1em;
@@ -220,7 +245,7 @@ const Button = styled.button`
 render(
   <div>
     <Button>Normal</Button>
-    <Button primary>Primary</Button>
+    <Button primary={true}>Primary</Button>
   </div>
 );
 ////////////Extending Styles////////////

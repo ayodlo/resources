@@ -72,3 +72,22 @@ import thisStringValue = require("es-abstract/2015/thisstringvalue")
 //This can speed up perceived page-load times so you can render the page as early as possible but will add a small latency
 //If you have data that is secondary to the main purpose of the page and can wait until after DOM is ready then let the page load normally and fetch data during render step
 //This will reduce number of page requests that must be handled at page-load time and eliminate the small latency hit
+
+/*Switch Statements*/
+const expr = 'Papayas';
+switch (expr) {
+  case 'Oranges':
+    console.log('Oranges are $0.59 a pound.');
+    break;
+  case 'Mangoes':
+  case 'Papayas':
+    console.log('Mangoes and papayas are $2.79 a pound.');
+    // expected output: "Mangoes and papayas are $2.79 a pound."
+    break;
+  default:
+    console.log(`Sorry, we are out of ${expr}.`);
+}
+
+/*JSON.stringify() and JSON.parse*/
+//JSON.stringify() can be used to stringify anything like an object or value
+//JSON.parse does the opposite - pulls the string without having quotes
