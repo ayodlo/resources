@@ -341,11 +341,26 @@ function App() {
 }
 
 export default App
-export default App
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*HTTP Request*/
 ////////////////
 //Inside App.js
+//You cannot return anything other than the cleanup function in useEffect (can't make the callback function provided to use effect asynchrnous)
+//If you want to use async/await, the best way to do that is like so:
+React.useEffect(() => {
+  async function effect() {
+    const result = await doSomeAsyncThing()
+    // do something with the result
+  }
+  effect()
+}) 
+//OR
+React.useEffect(() => {
+  doSomeAsyncThing().then(result => {
+    // do something with the result
+  })
+})
 //Make the call in our discover component
 //Use encodeURIComponent to make sure inputs don't have user errors
 //Create different states to the status, to make sure the user queried, and to update the query
@@ -377,6 +392,25 @@ function DiscoverBooksScreen() {
       return;
     }
     setStatus('loading');
+    /*Handling Errors*/
+    //We have 2 options for handling errors
+    // option 1: using .catch
+      fetchPokemon(pokemonName)
+      .then(pokemon => setPokemon(pokemon))
+      .catch(error => setError(error))
+
+      // option 2: using the second argument to .then
+      fetchPokemon(pokemonName).then(
+      pokemon => setPokemon(pokemon),
+      error => setError(error),
+      )
+/*
+  These are functionally equivalent for our purposes, but they are semantically different in general.
+  Using .catch means that you’ll handle an error in the fetchPokemon promise, but you’ll also handle an error in the setPokemon(pokemon) call as well. This is due to the semantics of how promises work.
+  Using the second argument to .then means that you will catch an error that happens in fetchPokemon only.
+  In this case, I knew that calling setPokemon would not throw an error (React handles errors and we have an API to catch those which we’ll use later), so I decided to go with the second argument option.
+  However, in this situation, it doesn’t really make much of a difference. If you want to go with the safe option, then opt for .catch.
+*/
     client(`books?query=${encodeURIComponent(query)}`).then(
       (responseData) => {
         setData(responseData);
@@ -482,6 +516,85 @@ export function client(endpoint, customConfig = {}) {
     }
   });
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*HTTP Request - Maintaining State in an Object*/
+////////////////////////////////////////////////
+//When making HTTP Requests its best to use a 'status' to indicate where we are in deciding what to render
+//Here it is easier to maintain all state in an object instead of chaining updates to state
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonForm,
+  PokemonDataView,
+} from '../pokemon'
+
+function PokemonInfo({pokemonName}) {
+  const [state, setState] = React.useState({
+    status: 'idle',
+    pokemon: null,
+    error: null,
+  })
+  const {status, pokemon, error} = state
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      return
+    }
+    setState({status: 'pending'})
+    fetchPokemon(pokemonName).then(
+      pokemon => {
+        setState({status: 'resolved', pokemon})
+      },
+      error => {
+        setState({status: 'rejected', error})
+      },
+    )
+  }, [])
+
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'rejected') {
+    return (
+      <div>
+        There was an error:{' '}
+        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      </div>
+    )
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemon} />
+  }
+
+  throw new Error('This should be impossible')
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className="pokemon-info">
+        <PokemonInfo pokemonName={pokemonName} />
+      </div>
+    </div>
+  )
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Error Boundaries*/
+///////////////////
+//Use the react-error-boundary library for error boundaries
+//Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed.
+//Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Authentication*/
 //////////////////
@@ -629,6 +742,56 @@ function client(
 
 export { client };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Lifting State*/
+////////////////
+//Lifting state meants finding the lowest common parent shared between the two components and placing the state management there, and then passing the state and a mechanism for updating that state down into the components that need it.
+//We can pass the callback function two ways - passing an anonymous function as the prop OR passing the fallback and calling the callback with an anonmyous function within the child
+//Colocation (having state inside the only component that needs it or the lowest common parent) is great because only the loest child component will have to rerender whenever state changes
+import * as React from 'react'
+
+function Name() {
+  const [name, setName] = React.useState('')
+  return (
+    <div>
+      <label htmlFor="name">Name: </label>
+      <input
+        id="name"
+        value={name}
+        onChange={event => setName(event.target.value)}
+      />
+    </div>
+  )
+}
+
+function FavoriteAnimal({animal, onAnimalChange}) {
+  return (
+    <div>
+      <label htmlFor="animal">Favorite Animal: </label>
+      <input id="animal" value={animal} onChange={onAnimalChange} />
+    </div>
+  )
+}
+
+function Display({animal}) {
+  return <div>{`Your favorite animal is: ${animal}!`}</div>
+}
+
+function App() {
+  const [animal, setAnimal] = React.useState('')
+  return (
+    <form>
+      <Name />
+      <FavoriteAnimal
+        animal={animal}
+        onAnimalChange={event => setAnimal(event.target.value)}
+      />
+      <Display animal={animal} />
+    </form>
+  )
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useState Hook*/
 ////////////////
 //here we destructure an array provided by the useState function given by React
@@ -744,8 +907,288 @@ function App() {
     )
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useReducer Hook*/
+////////////////
+//if you have multiple elements of state that typically change together, then having an object that contains those elements of state can be quite helpful.
+//typically, you’ll use useReducer with an object of state, but we’re going to start by managing a single number (a count).
+//One important thing to note here is that the reducer (called nameReducer above) is called with two arguments:
+//1) the current state which here is count
+//2) whatever it is that the dispatch function is called with. This is often called an “action.”
+//example:
+const countReducer = (state, newState) => newState //since newState is the only thing returned this will be what count updates to
+
+function Counter({initialCount = 0, step = 1}) {
+  const [count, setCount] = React.useReducer(countReducer, initialCount)
+  const increment = () => setCount(count + step)
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+export default App
+
+//another example showing you can pass anything as your action:
+import * as React from 'react'
+function Counter({initialCount = 0, step = 1}) {
+  function countReducer(count, step) {//notice the step 'action' and the 'count' as the current state
+    return count + step
+  }
+  const [count, changeCount] = React.useReducer(countReducer, initialCount)//changeCount is the name of the updater we will use while countReducer is the name of the reducer!!
+  const increment = () => changeCount(step)//action is provided to the changeCount reducer
+  return <button onClick={increment}>{count}</button>//onClick we are calling our action - convtion like 'changeMyVar'
+}
+function App() {
+  return <Counter />
+}
+export default App
+
+//another example using conventions state and action (reduxish)
+import * as React from 'react'
+
+const countReducer = (state, action) => ({...state, ...action})
+
+function Counter({initialCount = 0, step = 1}) {
+  const [state, setState] = React.useReducer(countReducer, {
+    count: initialCount,
+  })
+  const {count} = state
+  const increment = () => setState({count: count + step})
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+export default App
+
+//another example supporting a function passed to setState AND an object
+import * as React from 'react'
+
+function Counter({initialCount = 0, step = 1}) {
+  function countReducer(state, newState) {
+    //newState can be a function or an object, but if its a function we need to treat it the same way we defined it as the arg to setState
+    if (typeof newState === 'function') {
+      return newState(state) //state represents currentState within the setState function - we need to pass it an argument for it to work since that is how we define the function in setState
+    } else {
+      return {...state, ...newState}
+    }
+  }
+
+  const [state, setState] = React.useReducer(countReducer, {
+    count: initialCount, //notice there is always an initialized argument to our components!!!
+  })
+  const {count} = state //plucking off count from initial state
+  const increment = () =>
+    setState(currentState => ({count: currentState.count + step})) //notice we are passing a callback as an arguement to our updater function - we will need to pass the same arguments we expect here into the function within the reducer
+  //the effects of this are the same as in our normal useState hook, except this entire callback will be passed to the reducer
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+//same as above but Kent C Dodds version way cleaner
+import * as React from 'react'
+
+const countReducer = (state, action) => ({
+  ...state,
+  ...(typeof action === 'function' ? action(state) : action),
+})
+
+function Counter({initialCount = 0, step = 1}) {
+  const [state, setState] = React.useReducer(countReducer, {
+    count: initialCount,
+  })
+  const {count} = state
+  const increment = () =>
+    setState(currentState => ({count: currentState.count + step}))
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+export default App
+
+//traditional dispatch object with a type and switch statement
+import * as React from 'react'
+
+function countReducer(state, action) {//can also destructure our vars here as well by replacing action with {type, step}
+  //count pluck count here with {count} = state
+  const {type, step} = action//destructure out vars here
+  switch (type) {
+    case 'increment': {
+      return {
+        ...state,//we dont destructure count from state in args of countReducer because we end up needing the entire state variable
+        count: state.count + step,
+      }
+    }
+    default: {
+      throw new Error(`Unsupported action type: ${type}`) //great to have default fall back to unsupported action type incase people make errors
+    }
+  }
+}
+
+function Counter({initialCount = 0, step = 1}) {
+  const [state, dispatch] = React.useReducer(countReducer, {
+    count: initialCount,
+  })
+  const {count} = state
+  const increment = () => dispatch({type: 'increment', step})//by adding the step to our initial state we have made the step configurable! consider doing this for other vars for more flexibility
+  return <button onClick={increment}>{count}</button>
+}
+
+function App() {
+  return <Counter />
+}
+
+export default App
+
+//last example with lazy intialization
+//if you pass a third function argument to useReducer, it passes the second argument to that function and uses the return value for the initial state.
+//this could be useful if our init function read into localStorage or something else that we wouldn’t want happening every re-render.
+function init(initialStateFromProps) {
+  return {
+    pokemon: null,
+    loading: false,
+    error: null,
+  }
+}
+
+// ...
+
+const [state, dispatch] = React.useReducer(reducer, props.initialState, init)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useRef Hook - useContext*/
+///////////////////////////
+//Sharing state between components is a common problem. The best solution for this is to 📜 lift your state. This requires 📜 prop drilling which is not a problem, but there are some times where prop drilling can cause a real pain.
+//To avoid this pain, we can insert some state into a section of our react tree, and then extract that state anywhere within that react tree without having to explicitly pass it everywhere.
+//This feature is called context. In some ways it’s like global variables, but it doesn’t suffer from the same problems (and maintainability nightmares) of global variables thanks to how the API works to make the relationships explicit.
+//Keep in mind that while context makes sharing state easy, it’s not the only solution to Prop Drilling pains and it’s not necessarily the best solution either. 
+//React’s composition model is powerful and can be used to avoid issues with prop drilling as well.
+//Read here for more: https://twitter.com/mjackson/status/1195495535483817984
+//Example
+//<FooDisplay /> could appear anywhere in the render tree, and it will have access to the value which is passed by the FooContext.Provider component.
+import * as React from 'react'
+
+//Need our contenxt component in order to initiailze context to a useContext hook and use it as a wrapper in which you pass your value/state to which will be assigned to the variable you assigned to useContext
+const FooContext = React.createContext()
+
+function FooDisplay() {
+  const foo = React.useContext(FooContext)//here you are assigning the value/state you pass the wrapper to a var in your component
+  return <div>Foo is: {foo}</div>
+}
+
+ReactDOM.render(
+  <FooContext.Provider value="I am foo">
+    <FooDisplay />
+  </FooContext.Provider>,
+  document.getElementById('root'),
+)
+// renders <div>Foo is: I am foo</div>
+
+//another example more context no pun
+
+import * as React from 'react'
+
+const CountContext = React.createContext()//define context sort of like a global state with convention MyVarContext or MyStateContext
+
+function CountProvider(props) {//create the Provider component with same convention MyVarProvider or MyStateProvider
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]//want the value to be whatever is shared among both components that need either or both the count and setCount
+  // could also do it like this:
+  // const value = React.useState(0)
+  return <CountContext.Provider value={value} {...props} />//return the component with MyVarContext.Provider or MyStateContext.Provider (use the context component you created above and pass any your value and props)
+  //also may provide all other props you want to define inline when using the <CountProvider example={0}  example2={'foo'} /> component
+}
+
+function CountDisplay() {
+  const [count] = React.useContext(CountContext)//here we have access to the context value passed into value which we destructure as we passed [count,setCount]
+  return <div>{`The current count is ${count}`}</div>
+}
+
+function Counter() {
+  const [, setCount] = React.useContext(CountContext)//here we leave the first destructure null but pluck off setCount as its the second argument passed to value [count, setCount] which we provided in the CountProvider component
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
+}
+
+function App() {
+  return (
+    <div>
+      <CountProvider>{/*Here we wrap our components using the value coming from CountProvider with the CountProvider component that uses the CountContext we created with CountContext.createContext()*/}
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
+  )
+}
+
+export default App
+
+//another version with custom hook and error handling
+//we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
+//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom component
+//if the component we are using this in is not within the CountProvider it won't work and will throw an error
+import * as React from 'react'
+
+//SHOULD BE IN OWN MODULE
+const CountContext = React.createContext()
+
+function CountProvider(props) {
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]
+  return <CountContext.Provider value={value} {...props} />
+}
+
+function useCount() {
+  const context = React.useContext(CountContext) //getting value from provider
+  if (!context) {
+    throw new Error('useCount must be used within a CountProvider')
+  }
+  return context //returning value from provider
+}
+//END SHOULD BE IN OWN MODULE
+
+function CountDisplay() {
+  const [count] = useCount()
+  return <div>{`The current count is ${count}`}</div>
+}
+
+function Counter() {
+  const [, setCount] = useCount()
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
+}
+
+function App() {
+  return (
+    <div>
+      <CountProvider>
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
+  )
+}
+
+export default App
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useRef Hook - DOM Element Access*/
-//////////////////
+///////////////////////////////////
+//For refs on the DOM we want to use the useRef variable inside a useEffect
+//Remember that when you do: <div>hi</div> that’s actually syntactic sugar for a React.createElement so you don’t actually have access to DOM nodes in your function component.
+//In fact, DOM nodes aren’t created at all until the ReactDOM.render method is called. 
+//Your function component is really just responsible for creating and returning React Elements and has nothing to do with the DOM in particular.
+//To get access to the DOM, you need to ask React to give you access to a particular DOM node when it renders your component. The way this happens is through a special prop called ref.
+//After the component has been rendered, it’s considered “mounted.” That’s when the React.useEffect callback is called and so by that point, the ref should have its current property set to the DOM node.
+//So often you’ll do direct DOM interactions/manipulations in the useEffect callback.
 //most of the time we don't want to hook into dom element by manipulating dom directly with document.getElementById or something
 //ref is an object that stays consistent between renders of your React component. It has a current property on it which can be updated to any value at any time. 
 //In the case of interacting with DOM nodes, you can pass a ref to a React element and React will set the current property to the DOM node that’s rendered.
