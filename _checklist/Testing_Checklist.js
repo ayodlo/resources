@@ -75,7 +75,7 @@ npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme
 /*What to test?*/
 /////////////////
 /*Test High Value Features (Most Important Features)*/
-/*Test Edge Cases in High Value Features (how can they break a form or the UI? test for errors that should throw graceful error messages)*/
+/*Test Edge Cases in High Value Features (entering largest inputs and smallest inputs (extremes). How can they break a form or the UI? test for errors that should throw graceful error messages)*/
 /*Things that are EASY to break*/
 /*Basic React Component Testing
   ---> User Interactions
@@ -103,7 +103,7 @@ getByTestId
 /*Triple A's of Testing*/
 //ARRANGE --> ACT --> ASSERT Testing Pattern
 //First phase of test we are arranging things (rendering component)
-//Second phase we are acting the user is typing, clicking, interacting
+//Second phase we are acting like the user is typing, clicking, interacting
 //Third phase we are asserting where we are going to make our assertions
 //emulate a user event (here we are typing into a input field)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -566,6 +566,22 @@ describe("FollowersList", () => {
         expect(followerDivElement).toBeInTheDocument();
     });
 })
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*TESTING-LIBRARY*/
+//////////////////
+//For debugging using testing-playground, screen exposes this convenient method which logs a URL that can be opened in a browser.
+//screen.logTestingPlaygroundURL()
+import {screen} from '@testing-library/dom'
+
+document.body.innerHTML = `
+  <button>test</button>
+  <span>multi-test</span>
+  <div>multi-test</div>
+`
+// log entire document to testing-playground
+screen.logTestingPlaygroundURL()
+// log a single element
+screen.logTestingPlaygroundURL(screen.getByText('test'))
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*UNIT TESTS - Common Testing Functions and Practices*/
 //Testing small parts of the code

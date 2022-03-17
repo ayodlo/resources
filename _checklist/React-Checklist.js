@@ -180,6 +180,13 @@ function App() {
     </div>
   )
 }
+
+//uuid library for unique ids
+//install with npm i uuid
+//Example
+import { v4 as uuidv4 } from 'uuid';
+uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Routing*/
 //////////////////
@@ -347,6 +354,36 @@ export default App
 ////////////////
 //Inside App.js
 //You cannot return anything other than the cleanup function in useEffect (can't make the callback function provided to use effect asynchrnous)
+/*
+function ExampleComponent({url}) {
+  useEffect(() => fetchData(url), [url]);
+  return (<div></div>);
+}
+
+Considering url in the depndency list and reasoning for having it there...
+
+1) That URL never changes, and the effect should only run once - GOOD.
+2) That URL is changing but you only wanted it to query the first time - BAD.
+3) That URL is changing, and you want it to query every time it does - GOOD.
+
+For number 1, if the URL never changes going into the prop after the first time, then it’s already working correctly.
+The URL is the dependency, and that dependency is not intended to change.
+If for some reason, it does change, you are going to see that error much faster this way, whereas passing an empty array to the dependency array is going to “hide” this bug from you.
+
+For number 3, this is what the dependency array is built for.
+Each time that URL changes, the effect will be rerun, and you don’t need to set up any complex logic to keep it tied to the component like we had to do at the start of the article.
+
+So the only real issue is number 2. But when you stop and think about it, there seems to be a more significant issue to the way you are constructing your components in this example.
+You want data to come in, but that data is only representational of one instance of your component.
+If someone were to take a snapshot of your component later on, and pass those inputs to a new component, you would not get the same output.
+
+Our example does not have the referential transparency we want from our components.
+We should expect that given a set of input, we always receive the same output.
+And our goal should be that these components should be callable at any time.
+So I highly encourage that if you are hitting the number 2 outcome, you should rethink your component through.
+
+*/
+
 //If you want to use async/await, the best way to do that is like so:
 React.useEffect(() => {
   async function effect() {
@@ -516,6 +553,136 @@ export function client(endpoint, customConfig = {}) {
     }
   });
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useEffect W/ Functions*/
+/////////////////////////
+////////////////////////////////////////
+// #1: Move the function into the effect
+// Usecase: This fetchData call is only ever used in this local useEffect.
+/* If you plan on ever only using this function in this single useEffect, the most straightforward and suggested solution is to move the function directly into the effect closure.
+This works for everything we discussed previous, and it ensures that our effect function itself is as pure and referentially transparent as possible.
+It encapsulates the logic to one area and also lets developers know this function is intended as a side effect. So what does that look like
+*/
+function ExampleComponent({url}) {
+  useEffect(() => {
+    const fetchData = (url) => {
+	  // fetch call here
+	  }
+
+    fetchData(url)
+  }, [url]);
+  return (<div></div>);
+}
+//Since the fetchData function is now part of our effect, it is no longer a dependency of our effect, and we can simply remove it from the dependency array.
+////////////////////////////////////////////////////
+//Approach #2: Memoize the function with useCallback
+//Usecase: This function is used in multiple local hooks or is going to be passed down in a child component
+/*useCallback is one of the new hooks available to React. 
+It allows us to memoize a function so that on subsequent updates of the component, the function keeps its referential equality, and therefore does not trigger the effect.
+useCallbacks use the same dependency array that a useEffect does, so if the values or functions it depends on change, it will be reinitialized.*/
+/* Knowing that we can store the reference to a spot in memory for a given function, we can pass that reference into a dependency array of a useEffect. 
+If the component is rerendered, and that function is not pointing to the same spot in memory (even if it’s the same function and parameters), 
+the useEffect will be called again because it sees it as a new function. 
+If we can memoize (remember) the function reference, that means we can stop the useEffect from rerunning unless it truly has changed. Let’s see what that looks like.
+////////////////////
+If you are only going to do a single use of the function, I recommend moving the logic in like below, but this pattern is handy when you need to pass the function into multiple useEffects.
+You’ll find useCallback even handier when passing functions down into child components. If we don’t use this pattern, the child component will rerender every update, even if it is memoized. 
+That’s because the function will never have the same referential equality to the previous render. 
+Even more, if that child component has any hooks dependent on that function, the will be recalled every time. 
+For that reason, it’s always a good bet to build your functions that are being passed to child components with useCallback.*/
+function ExampleComponent({url}) {
+	const fetchData = useCallback(() => {
+	  // fetch call here
+	}, [url]);
+	
+  useEffect(() => fetchData(), [fetchData]);
+  return (<div></div>);
+}
+/*
+Note: This does not mean you should build every function with useCallback. It’s only crucial if it is being passed to child components. 
+Memoizing local functions calls can often add unnecessary overhead and complexity to your code.
+
+So, we know that if we are using our functions in a dependency array, we should memoize them by wrapping this in a useEffect.
+If we don’t do this, the effect will rerun after every update of the component.
+So then, why in the original example of the useEffect did I now do that with the setData function?
+*/
+
+export function CatFacts({ id }) {
+  const [data, setData] = useState();
+  useEffect(() => {
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    const targetUrl = `https://cat-fact.herokuapp.com/facts/${id}`;
+    fetch(proxyUrl + targetUrl)
+      .then(response => response.json())
+      .then(facts => {
+        setData(facts.text);
+      });
+  }, [id, setData]);
+
+  return <div>Cat Fact: {data}</div>;
+
+/*That’s because the function returned in the useState hook is already memoized for you. The same goes for useReducer. 
+And this sets up a fundamental design principle for you as a developer moving forward as you create your hooks. 
+If you are returning a function from your hook, it’s highly likely you want that function memoized, so that developers can use them without the extra overhead of handling them.*/
+//Last Example
+//Link - https://codesandbox.io/s/useeffectwithandwithoutcallback-t3gff
+function App() {
+  const [index, setIndex] = useState(0);
+  const notMemoized = () => {
+    console.log("Rendered no callback");
+  };
+
+  const memoized = useCallback(() => console.log("Rendered callback"), []);
+
+  return (
+    <div className="App">
+      <h1>Hello CodeSandbox</h1>
+      <h2>Start editing to see some magic happen!</h2>
+      <DemoEffect dep={notMemoized} />
+      <DemoEffect dep={memoized} />
+      <button onClick={() => setIndex(index + 1)}>Rerender</button>
+    </div>
+  );
+}
+
+function DemoEffect({ dep }) {
+  useEffect(() => dep(), [dep]);
+  return <div>Demo Effect</div>;
+}
+//////////////////////////////////////////
+//Approach #3: Import the function instead
+/*The last style we can use for our fetchData function actually moves it outside of the component itself. 
+This is a style that isn’t often talked about as much as the prior two, but, depending on what it does, can often be my favourite. 
+This style does need for you to use the ESM import style in your modules, and not the CJS style.
+
+Note: Without going too into detail, this is because import statements are going to give us a single instance of a function that cannot be mutated, 
+whereas an exported module with CJS can be mutated. This is also why ESM is statically analyzable. If you do want to read more about this, 
+modules are talked about quite frequently in be Reducing JS Bundle Size series.*/
+
+//In the example above, this could look something like this:
+
+import { fetchData } from './utils';
+
+export function CatFacts({ id }) {
+  const [data, setData] = useState();
+  useEffect(() => {
+   fetchData(id, setData)
+  }, [id, setData]);
+
+  return <div>Cat Fact: {data}</div>;
+
+/*Because the module cannot be mutated, we don’t have to specify the function in our dependency array, as it’s not possible for it to change. 
+Now, you can still place the function in the dependency array, but even the ESLint won’t force you to do this. So why is this better? 
+Just to avoid putting the function in the dependency array?
+
+The biggest reason I often will split out my functions into utils functions like this is to increase the testability of it. 
+Sometimes I will have some complex logic in my useEffect that I would like to test individually. Now, there are ways to test hooks, but they are a lot more challenging to do. 
+I also find that splitting these chunks of code into named functions increases the readability of my code, so it often is more helpful to do this already, 
+and moving it to a new module gives me better testing for free.
+
+Last, when we do this, it also makes it easier to mock the side effects of that effect when we are doing integration testing of that component. 
+In this example, we’ve split out the actual async “fetch” side effect. We could mock the fetchData method, and instead, 
+just call the setData argument to be filled with what data we want to test against.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*HTTP Request - Maintaining State in an Object*/
 ////////////////////////////////////////////////
@@ -907,8 +1074,16 @@ function App() {
     )
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useLayoutEffect Hook*/
+//////////////////////
+//sometimes there is a janky experience with an app or visual element because when using useEffect there’s a gap between the time that the DOM is visually updated and our code runs
+//this is when you use useLayoutEffect!
+//useLayouEffect runs its effects before react paints the screen
+//here’s the simple rule for when you should use useLayoutEffect: If you are making observable changes to the DOM, then it should happen in useLayoutEffect, otherwise useEffect.
+//99% of the time useEffect is what you want, but sometimes useLayoutEffect can improve your user experience.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useReducer Hook*/
-////////////////
+/////////////////
 //if you have multiple elements of state that typically change together, then having an object that contains those elements of state can be quite helpful.
 //typically, you’ll use useReducer with an object of state, but we’re going to start by managing a single number (a count).
 //One important thing to note here is that the reducer (called nameReducer above) is called with two arguments:
@@ -1133,7 +1308,7 @@ export default App
 
 //another version with custom hook and error handling
 //we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
-//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom component
+//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom hook (think of useCount as the value returned from provider)
 //if the component we are using this in is not within the CountProvider it won't work and will throw an error
 import * as React from 'react'
 
@@ -1179,6 +1354,128 @@ function App() {
 
 export default App
 
+//another example - larger more realy world - cache
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonForm,
+  PokemonDataView,
+  PokemonInfoFallback,
+  PokemonErrorBoundary,
+} from '../pokemon'
+import {useAsync} from '../utils'
+
+// 🐨 Create a PokemonCacheContext
+const PokemonCacheContext = React.createContext()
+// 🐨 create a PokemonCacheProvider function
+function PokemonCacheProvider(props) {
+  function pokemonCacheReducer(state, action) {
+    switch (action.type) {
+      case 'ADD_POKEMON': {
+        return {...state, [action.pokemonName]: action.pokemonData}
+      }
+      default: {
+        throw new Error(`Unhandled action type: ${action.type}`)
+      }
+    }
+  }
+  const [cache, dispatch] = React.useReducer(pokemonCacheReducer, {})
+  const value = [cache, dispatch]
+  return <PokemonCacheContext value={value} {...props} />
+}
+
+function PokemonInfo({pokemonName}) {
+  const [cache, dispatch] = React.useContext(PokemonCacheContext)
+  const {data: pokemon, status, error, run, setData} = useAsync()
+  React.useEffect(() => {
+    if (!pokemonName) {
+      return
+    } else if (cache[pokemonName]) {
+      setData(cache[pokemonName])
+    } else {
+      run(
+        fetchPokemon(pokemonName).then(pokemonData => {
+          dispatch({type: 'ADD_POKEMON', pokemonName, pokemonData})
+          return pokemonData
+        }),
+      )
+    }
+  }, [cache, pokemonName, run, setData])
+
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'rejected') {
+    throw error
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemon} />
+  }
+}
+
+function PreviousPokemon({onSelect}) {
+  // 🐨 get the cache from useContext with PokemonCacheContext
+  const cache = React.useContext(PokemonCacheContext)
+  return (
+    <div>
+      Previous Pokemon
+      <ul style={{listStyle: 'none', paddingLeft: 0}}>
+        {Object.keys(cache).map(pokemonName => (
+          <li key={pokemonName} style={{margin: '4px auto'}}>
+            <button
+              style={{width: '100%'}}
+              onClick={() => onSelect(pokemonName)}
+            >
+              {pokemonName}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function PokemonSection({onSelect, pokemonName}) {
+  // 🐨 wrap this in the PokemonCacheProvider so the PreviousPokemon
+  // and PokemonInfo components have access to that context.
+  return (
+    <PokemonCacheProvider>
+      <div style={{display: 'flex'}}>
+        <PreviousPokemon onSelect={onSelect} />
+        <div className="pokemon-info" style={{marginLeft: 10}}>
+          <PokemonErrorBoundary
+            onReset={() => onSelect('')}
+            resetKeys={[pokemonName]}
+          >
+            <PokemonInfo pokemonName={pokemonName} />
+          </PokemonErrorBoundary>
+        </div>
+      </div>
+    </PokemonCacheProvider>
+  )
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState(null)
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleSelect(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <PokemonSection onSelect={handleSelect} pokemonName={pokemonName} />
+    </div>
+  )
+}
+
+export default App
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useRef Hook - DOM Element Access*/
 ///////////////////////////////////
@@ -1192,7 +1489,7 @@ export default App
 //most of the time we don't want to hook into dom element by manipulating dom directly with document.getElementById or something
 //ref is an object that stays consistent between renders of your React component. It has a current property on it which can be updated to any value at any time. 
 //In the case of interacting with DOM nodes, you can pass a ref to a React element and React will set the current property to the DOM node that’s rendered.
-//need to make sure we are using the ref.current.value (current is important)
+//we need to make sure we are using the ref.current.value (current is important)
 //useRef on every render will return the same object - whatever we store in it will be stored as the current properties values and can be modified without a component rerender
 function TextInputWithFocusButton() {
   const inputEl = useRef(null);
@@ -1343,6 +1640,329 @@ function App() {
 }
 
 export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useMemo*/
+//////////
+//When you update state in react our entire component gets rerendered
+//useMemo comes in handy if the arguments for a slow function we are using does not change
+//if we don't want to rerun a function for updating a piece of state it does not depend on we use useMemo
+//the drawback is useMemo gets called every single time and we need to store stuff in memory - only use it for the performance benefits
+//useMemo takes a function and it is going to return the return value of that function
+//useCallback takes a function and reutrns the entire function vs the return function of that function which allows us to give the function parameters
+export default function App() {
+  const [number, setNumber] = useState(0)
+  const [dark, setDark] = useState(false)
+  const doubleNumber = useMemo(() => {
+    return slowFunction(number)
+  }, [number]) //whenever number changes we want to recalculate our function but if not we don't
+
+  const themeStyles = {
+    backgroundColor: dark ? 'black' : 'white',
+    color: dark ? 'white' : 'black'
+  }
+
+  return (
+    <>
+    <input type='number' value={number} onChange={e => setNumber(parseInt(e.target.value))} />
+    <button onClick={() => setDark(prevDark => !prevDark)}>Change Theme</button>
+    <div style={themeStyles}>{doubleNumber}</div>
+    </>
+  )
+}
+
+function slowFunction(num) {
+  console.log('Calling Slow Function')
+  for (let i = 0; i <= 100000000000000; i++) {}
+  return num * 2;
+}
+
+////////////////////////////////////////
+//second use case - referential equality
+//useMemo takes a function and it is going to return the return value of that function
+//useCallback takes a function and reutrns the entire function vs the return function of that function which allows us to give the function parameters
+export default function App() {
+  const [number, setNumber] = useState(0)
+  const [dark, setDark] = useState(false)
+  const doubleNumber = useMemo(() => {
+    return slowFunction(number)
+  }, [number]) //whenever number changes we want to recalculate our function but if not we don't
+
+  //Here we use useMemo to ensure that unless the dark variable doesn't change we will not change themeStyles which will prevent a rerender in useEffect
+  const themeStyles = useMemo(() => {
+    return {
+      backgroundColor: dark ? 'black' : 'white',
+      color: dark ? 'white' : 'black'
+    }
+  }, [dark])
+//each render will create a new themeStyles for a function or object such as themeStyles in this case
+useEffect(() => {
+  console.log(themeStyles)
+}, [themeStyles])
+
+  return (
+    <>
+    <input type='number' value={number} onChange={e => setNumber(parseInt(e.target.value))} />
+    <button onClick={() => setDark(prevDark => !prevDark)}>Change Theme</button>
+    <div style={themeStyles}>{doubleNumber}</div>
+    </>
+  )
+}
+
+function slowFunction(num) {
+  console.log('Calling Slow Function')
+  for (let i = 0; i <= 100000000000000; i++) {}
+  return num * 2;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useCallback Simple*/
+/////////////////////
+//useMemo takes a function and it is going to return the return value of that function
+//useCallback takes a function and reutrns the entire function vs the return function of that function which allows us to give the function parameters
+//We want to useCallback for referential equiality issues similar to useMemo which will only happen when using some other hook with dependency issues
+export default function App() {
+  const [number, setNumber] = useState(1)
+  const [dark, setDark] = useState(false)
+
+  const getItems = useCallback((incrementor) => {
+    return [number + incrementor, number + 1 + incrementor, number + 2 + incrementor]
+  }, [number])
+
+  const theme = {
+    backgroundColor: dark ? '#333' : '#FFF',
+    color: dark ? '#FFF' : '#333'
+  }
+
+  return (
+    <div style={theme}>
+      <input 
+      type="number"
+      value={number}
+      onChange={e => setNumber(parseInt(e.target.value))} 
+      />
+      <button onClick={() => setDark(prevDark => !prevDark)}>
+        Toggle Theme
+      </button>
+      <List getItems={getItems} />
+    </div>
+  )
+
+}
+
+//List.js
+//notice here we can pass parameters to getItems
+export default function List({getItems}) {
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    setItems(getItems(1))
+    console.log('Updating Items')
+  }, [getItems])
+
+  return items.map(item => <div key={item}>{item}</div>)
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useCallback W/ Custom Hooks*/
+//////////////////////////////
+//Memoization is actually a specific type of caching
+//While caching can refer in general to any storing technique (like HTTP caching) for future use, memoizing specifically involves caching the return values of a function
+//useCallback returns an entire function passed to it while useMemo only returns the value provided by the function it is given
+//We want to use useCallback if we don't want our component to rerender our component resulting in the rerender of children (basically if we have referential equality problems where we use another hook where that function value is inside the depency array) or other components OR if creating a function is really expensive
+//For example if we have a getItems function inside our component which a is being passed to a child, but also have a [darkTheme, setDarkTheme] state and setter inside that same component we don't want the child to rerender just because the darkTheme changes
+//This can be avoided via useCallback
+//Simple Example of Memoization:
+const values = {}
+function addOne(num: number) {
+  if (values[num] === undefined) {
+    values[num] = num + 1 // <-- here's the computation
+  }
+  return values[num]
+}
+//One other aspect of memoization is value referential equality. For example:
+const dog1 = new Dog('sam')
+const dog2 = new Dog('sam')
+console.log(dog1 === dog2) // false
+//Even though those two dogs have the same name, they are not the same. However, we can use memoization to get the same dog:
+const dogs = {}
+function getDog(name: string) {
+  if (dogs[name] === undefined) {
+    dogs[name] = new Dog(name)
+  }
+  return dogs[name]
+}
+const dog1 = getDog('sam')
+const dog2 = getDog('sam')
+console.log(dog1 === dog2) // true
+//Memoization in React: read more here - https://epicreact.dev/memoization-and-react
+//In react we have two options for memozation: useMemo and useCallback.
+//If we are using a function in our callback that needs to be added to our dependency list, then we use one of these instead of useEffect
+//Example
+const updateLocalStorage = () => window.localStorage.setItem('count', count)
+React.useEffect(() => {
+  updateLocalStorage()
+}, [updateLocalStorage]) // <-- function as a dependency
+//We cant use useEffect because updateLocalStorage is defined inside the component function body. So it’s re-initialized every render. 
+//Which means it’s brand new every render. Which means it changes every render. Which means an infinite loop!
+//This is where useCallback comes in
+const updateLocalStorage = React.useCallback(
+  () => window.localStorage.setItem('count', count),
+  [count], // <-- yup! That's a dependency list!
+)
+React.useEffect(() => {
+  updateLocalStorage()
+}, [updateLocalStorage])
+//What that does is we pass React a function and React gives that same function back to us
+//if the elements in the dependency list are unchanged, instead of giving the same function back that we give to it, React will give us the same function it gave us last time
+//example - this is not how React actually implements this function. We're just imagining!
+let lastCallback
+function useCallback(callback, deps) {
+  if (depsChanged(deps)) {
+    lastCallback = callback
+    return callback
+  } else {
+    return lastCallback
+  }
+}
+//lastly useCallback is just a shortcut to using useMemo for functions:
+// the useMemo version:
+const updateLocalStorage = React.useMemo(
+  // useCallback saves us from this annoying double-arrow function thing:
+  () => () => window.localStorage.setItem('count', count),
+  [count],
+)
+
+// the useCallback version
+const updateLocalStorage = React.useCallback(
+  () => window.localStorage.setItem('count', count),
+  [count],
+)
+
+//real memoized example without useCallback....
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonForm,
+  PokemonDataView,
+  PokemonInfoFallback,
+  PokemonErrorBoundary,
+} from '../pokemon'
+
+function asyncReducer(state, action) {
+  switch (action.type) {
+    case 'pending': {
+      return {status: 'pending', data: null, error: null}
+    }
+    case 'resolved': {
+      return {status: 'resolved', data: action.data, error: null}
+    }
+    case 'rejected': {
+      return {status: 'rejected', data: null, error: action.error}
+    }
+    default: {
+      throw new Error(`Unhandled action type: ${action.type}`)
+    }
+  }
+}
+
+function useAsync(asyncCallback, initialState, dependencies) {
+  const [state, dispatch] = React.useReducer(asyncReducer, {
+    status: 'idle',
+    data: null,
+    error: null,
+    ...initialState,
+  })
+
+  React.useEffect(() => {
+    const promise = asyncCallback()
+    if (!promise) {
+      return
+    }
+    dispatch({type: 'pending'})
+    promise.then(
+      data => {
+        dispatch({type: 'resolved', data})
+      },
+      error => {
+        dispatch({type: 'rejected', error})
+      },
+    )
+    // too bad the eslint plugin can't statically analyze this :-(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dependencies)
+
+  return state
+}
+
+function PokemonInfo({pokemonName}) {
+  const state = useAsync(
+    () => {
+      if (!pokemonName) {
+        return
+      }
+      return fetchPokemon(pokemonName)
+    },
+    {status: pokemonName ? 'pending' : 'idle'},
+    [pokemonName],
+  )
+
+  const {data: pokemon, status, error} = state
+
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'rejected') {
+    throw error
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemon} />
+  }
+
+  throw new Error('This should be impossible')
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleReset() {
+    setPokemonName('')
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className="pokemon-info">
+        <PokemonErrorBoundary onReset={handleReset} resetKeys={[pokemonName]}>
+          <PokemonInfo pokemonName={pokemonName} />
+        </PokemonErrorBoundary>
+      </div>
+    </div>
+  )
+}
+
+function AppWithUnmountCheckbox() {
+  const [mountApp, setMountApp] = React.useState(true)
+  return (
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          checked={mountApp}
+          onChange={e => setMountApp(e.target.checked)}
+        />{' '}
+        Mount Component
+      </label>
+      <hr />
+      {mountApp ? <App /> : null}
+    </div>
+  )
+}
+
+export default AppWithUnmountCheckbox
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*PATTERNS*/
 ///////////
