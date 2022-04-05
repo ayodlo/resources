@@ -1,7 +1,146 @@
-/*Install ES Lint*/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*SIMPLE ESLINT*/
+//////////////////////////////////////////////////////
 //eslint will help us avoid typos
+//simple install first we need to npm init to initialize our project as a javascript project
+npm install -g eslint
+//configuration will ask you what you want eslint to do
+eslint --init
+//choose To check syntax, to find problems, and enforce code style
+//check everything that applies to you after this
+//dont want to use styling if we are going to use prettier
+//go and make sure you have ESLINT extension installed in order to see the errors
+//you will find the esclintrc.json file which is the configuration file for the linter
+//more config - you can search for eslint in settings of vs code and make sure that autofix on save is on
+//you can also go to eslintrc.json file and within rules define any rule you want (e.g. "no-console":"off" will turn the errors off - args "on", "warning" or "0", "1", "2")
+//see all the rules available here - https://eslint.org/docs/rules/
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*ESLINT IMPORT PLUGIN*/
+//////////////////////////////////////////////////////
+// article - https://dev.to/otamnitram/sorting-your-imports-correctly-in-react-213m
+// installation
+npm i eslint-plugin-import
+// place the rules into rules
+// Add the snippet below into "script" in package.json file.
+"lint": "eslint ."
+//Run 
+npm run lint
 
+"import/order": [
+  "error",
+  {
+    "groups": ["builtin", "external", "internal"],
+    "pathGroups": [
+      {
+        "pattern": "react",
+        "group": "external",
+        "position": "before"
+      }
+    ],
+    "pathGroupsExcludedImportTypes": ["react"],
+    "newlines-between": "always",
+    "alphabetize": {
+      "order": "asc",
+      "caseInsensitive": true
+    }
+  }
+],
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*PRETTIER CONFIG*/
+///////////////////
+/* Prettier */
+/*Prettier Extension*/
+//install and enable the extension
+//within settings hit json version in top right
+//add code:
+{ 
+  //Place your settings in this file to overwrite the default settings
+  "editor.defaultFormatter": "esbenp.prettier-vscode", //the formatter that the prettier vs code extension exposes  to vs code so it can format our code
+  "editor.formatOnSave": true //formats on save
+  }
+/* Prettier Configuration */
+//prettier.io/playground/
+//global section//
+parser: flow //prettier will automatically figure out which parser to use based on the file extension
+print-width: 80
+tab-width: 2
+//common section//
+single-quote: true //change quotes from double to single which we want in js
+no-bracket-spacing: true
+prose-wrap: always //this is for markdown and we always want to wrap
+//js section//
+no-semi: true
+jsx-single-quot: false
+jsx-bracket-same-line: false
+quote-props: as-needed
+arrow-parens: avoid
+trailing-comma: all
+//html section//
+html-whitespace-sensitivity: css
+//special section//
+insert-pragma: false
+require-pragma: false
+//range section//
+range-start: none
+range-end: none
+//debug section//
+show AST: none
+show doc: none
+show second format: none
+//--> Copy config JSON and paste it in .prettierrc file within the src directory
 
+/*Installing prettier with npm*/
+npm install --save-dev prettier
+//should see prettier in dev dependencies now and node_modules.bin
+//can run:
+npx prettier src/example.js
+//this will log out same file contents with things formatted properly
+//can run:
+npm prettier srx/example.js --write
+//add script in package.json to run this for us^:
+"scripts": {
+  "build": "babel src --out-dir dist",
+  "lint": "eslint --ignore-path .gitignore .",
+  "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|json)\"" //this will match all files that are js or json
+},
+
+/*Disable Unnecessary ESLint Stylistic Rules with eslint-config-prettier*/
+//prettier and eslint can clash if there is an eslint rule that can prevent something like having an extra semicolon but prettier would automatically fix that anyway
+//we can look at that rule and disable it since its impossible to break anyways
+//run code:
+npm install --save-dev eslint-config-prettier //configuration that has already been configured to disable any rules that prettier determines useless
+//should see eslint-config-prettier in package.json dev dependencies
+//inside .eslintrc add "eslint-config-prettier" to the extends prop:
+"extends": ["eslint:recommended", "eslint-config-prettier"] //it may also disable rules for other configuration types we are installing (e.g. typescript, babel, flowtype, react, standard, unicorn, vue, etc)
+
+/*Validate All Files are Properly Formatted with Prettier*/
+//add script:
+"validate": "npm run lint && npm run build"
+//run code:
+npm run validate //will run all the linting and building and makes sure the project is in a good state
+//want to make sure files in project are properly formatted with prettier
+//add script:
+"check-format": "prettier --ignore-path .gitignore --list-different \"**/*.+(js|json)\""
+//run code:
+npm run check-format //prettier will go through all files and will check if it were to format file would it actually change
+//can add this script to the validate script
+"validate": "npm run check-format && npm run lint && npm run build"
+//can run code:
+npm run validate //will run all our scripts, prettier being first and we can see that we didn't format that way we can run npm run format
+//can run:
+npm run format
+npm run validate //so we can know that this project is in a good state when validate script passes
+//the check-format and format scripts have a lot of duplication
+//add prettier script which will have all commonalities between scripts
+"scripts": {
+  "prettier": "prettier --ignore-path .gitignore \"**/*.+(js|json)\"",
+  "format": "npm run prettier -- --write", //add -- which tells npm to forward all remaining arguments to this script here which here are --write
+  "check-format": "npm run prettier -- --list-different",
+  "validate": "npm run check-format && npm run lint && npm run build"
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DEEP DIVE ESLINT AND OTHER STATIC TOOLS*/
+///////////////////////////////////////////
 
 /*Install ES Lint Plugin*/
 //go to extensions and find eslint and enable it

@@ -40,7 +40,7 @@ No More Than 100 Lines!
 0. Map out architecture of app to determine responsibility of each component (SOLID)
   -> Should not have to change one component to change another
 1. Only store state if 
--> State goes NOT come from parent
+-> State does NOT come from parent
 -> State can NOT be derived
   -> State DOES change over time
   2. Only pass props relevant for rendering UI
@@ -120,7 +120,21 @@ FavoriteNumber.propTypes = {
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Prop Types With Library*/
-////////////////
+//////////////////////////
+import PropTypes from 'prop-types';
+
+class Greeting extends React.Component {
+  render() {
+    return (
+      <h1>Hello, {this.props.name}</h1>
+    );
+  }
+}
+
+Greeting.propTypes = {
+  name: PropTypes.string
+};
+
 // declare PropTypes object inside compoent and set your props
 function Message({subject, greeting}) {
   return <div className='Message'>{greeting}, {subject}</div>
@@ -136,6 +150,99 @@ const element = (<div className='Container'>
   <Message subject="World" />
   <Message greeting="Goodbye" subject={5} />
 </div>)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*All Prop Types*/
+////////////////
+import PropTypes from 'prop-types';
+
+MyComponent.propTypes = {
+  // You can declare that a prop is a specific JS type. By default, these
+  // are all optional.
+  optionalArray: PropTypes.array,
+  optionalBool: PropTypes.bool,
+  optionalFunc: PropTypes.func,
+  optionalNumber: PropTypes.number,
+  optionalObject: PropTypes.object,
+  optionalString: PropTypes.string,
+  optionalSymbol: PropTypes.symbol,
+
+  // Anything that can be rendered: numbers, strings, elements or an array
+  // (or fragment) containing these types.
+  optionalNode: PropTypes.node,
+
+  // A React element.
+  optionalElement: PropTypes.element,
+
+  // A React element type (ie. MyComponent).
+  optionalElementType: PropTypes.elementType,
+
+  // You can also declare that a prop is an instance of a class. This uses
+  // JS's instanceof operator.
+  optionalMessage: PropTypes.instanceOf(Message),
+
+  // You can ensure that your prop is limited to specific values by treating
+  // it as an enum.
+  optionalEnum: PropTypes.oneOf(['News', 'Photos']),
+
+  // An object that could be one of many types
+  optionalUnion: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.instanceOf(Message)
+  ]),
+
+  // An array of a certain type
+  optionalArrayOf: PropTypes.arrayOf(PropTypes.number),
+
+  // An object with property values of a certain type
+  optionalObjectOf: PropTypes.objectOf(PropTypes.number),
+
+  // An object taking on a particular shape
+  optionalObjectWithShape: PropTypes.shape({
+    color: PropTypes.string,
+    fontSize: PropTypes.number
+  }),
+
+  // An object with warnings on extra properties
+  optionalObjectWithStrictShape: PropTypes.exact({
+    name: PropTypes.string,
+    quantity: PropTypes.number
+  }),   
+
+  // You can chain any of the above with `isRequired` to make sure a warning
+  // is shown if the prop isn't provided.
+  requiredFunc: PropTypes.func.isRequired,
+
+  // A required value of any data type
+  requiredAny: PropTypes.any.isRequired,
+
+  // You can also specify a custom validator. It should return an Error
+  // object if the validation fails. Don't `console.warn` or throw, as this
+  // won't work inside `oneOfType`.
+  customProp: function(props, propName, componentName) {
+    if (!/matchme/.test(props[propName])) {
+      return new Error(
+        'Invalid prop `' + propName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+  },
+
+  // You can also supply a custom validator to `arrayOf` and `objectOf`.
+  // It should return an Error object if the validation fails. The validator
+  // will be called for each key in the array or object. The first two
+  // arguments of the validator are the array or object itself, and the
+  // current item's key.
+  customArrayProp: PropTypes.arrayOf(function(propValue, key, componentName, location, propFullName) {
+    if (!/matchme/.test(propValue[key])) {
+      return new Error(
+        'Invalid prop `' + propFullName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+  })
+};
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Key Prop for Rendering Arrays*/
 ////////////////////////////////
@@ -348,18 +455,243 @@ function App() {
 }
 
 export default App
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*HTTP Request*/
+/*Lifting State*/
+////////////////
+//Lifting state means finding the lowest common parent shared between the two components and placing the state management there, and then passing the state and a mechanism for updating that state down into the components that need it.
+//We can pass the callback function two ways - passing an anonymous function as the prop OR passing the fallback and calling the callback with an anonmyous function within the child
+//Colocation (having state inside the only component that needs it or the lowest common parent) is great because only the loest child component will have to rerender whenever state changes
+import * as React from 'react'
+
+function Name() {
+  const [name, setName] = React.useState('')
+  return (
+    <div>
+      <label htmlFor="name">Name: </label>
+      <input
+        id="name"
+        value={name}
+        onChange={event => setName(event.target.value)}
+      />
+    </div>
+  )
+}
+
+function FavoriteAnimal({animal, onAnimalChange}) {
+  return (
+    <div>
+      <label htmlFor="animal">Favorite Animal: </label>
+      <input id="animal" value={animal} onChange={onAnimalChange} />
+    </div>
+  )
+}
+
+function Display({animal}) {
+  return <div>{`Your favorite animal is: ${animal}!`}</div>
+}
+
+function App() {
+  const [animal, setAnimal] = React.useState('')
+  return (
+    <form>
+      <Name />
+      <FavoriteAnimal
+        animal={animal}
+        onAnimalChange={event => setAnimal(event.target.value)}
+      />
+      <Display animal={animal} />
+    </form>
+  )
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Composition vs Context for Prop Drilling*/
+////////////////////////////////////////////
+// Using the children prop makes your component tree more customizable and eliminates the need to prop drill or useContext
+// Having just one component that has alot of nested components may be good if you want encapsulation, but it's not customizable
+
+function App() {
+
+  const [user, setUser] = React.useState(null)
+
+  return (
+    <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+      <div style={{backgroundcolor: 'lightgray'}}>
+        <Header />
+      </div>
+      <div style={{flex: 1}}>
+      {currentUser ? (
+        <Dashboard>
+          <DashboardNav />
+          <DashboardContent>
+            <WelcomeMessage user={currentUser} />
+          </DashboardContent>
+        </Dashboard>
+      ) : (
+        <LoginScreen onLogin={() => setCurrentUser({name: 'Michael'})} />
+      )}
+      </div>
+    </div>
+  )
+  
+  function Dashboard({ children }) {
+    return (
+      <div>
+        <h2>The Dashboard</h2>
+        {children}
+      </div>
+    )
+  }
+  function DashboardNav() {
+    return (
+      <div>
+        <h3>Dashboard Nav</h3>
+      </div>
+    )
+  }
+  function DashboardContent({ children }) {
+    return (
+      <div>
+        <h3>Dashboard Content</h3>
+        {children}
+      </div>
+    )
+  }
+  function WelcomeMessage({user}) {
+    return (
+      <div>
+        <p>Welcome {user.name}</p>
+      </div>
+    )
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useState Hook*/
+////////////////
+//here we destructure an array provided by the useState function given by React
+function App() {
+  const [counter, setCounter] = useState(0)
+}
+// we can lazily load the initial value for useState if it is an expensive computation
+// this works because if we just put an actual function (e.g. useState(myFunction())) then my function will get rendered every time the component rerenders because it is being called, however, 
+// if we provide a callback function that returns a function it will only be called once after the first render the useState() hook will have served its purpose and will not be called again!
+function App() {
+  const [counter, setCounter] = useState(() => {
+    myFunction();
+    return 0;
+  })
+}
+// lastly, we can use the current value of state to determine the next value of state if it depends on the previous value of state
+// here React checks if setCounter is called with a function it will give that function a parameter that is equivalent to the latest value of state here which is 'currentStateValue'
+function App() {
+  const [counter, setCounter] = useState(0)
+  //counter = 0
+  return (
+    <div className="App">
+      <h1 onClick={() => 
+      setCounter(currentStateValue => currentStateValue + 1)
+      setTimeout((currentStateValue) => {
+        setCounter(currentStateValue)
+      }, 1000)
+      setTimeout((currentStateValue) => {
+        setCounter(currentStateValue)
+      }, 3000)} />
+    </div>
+    )
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useEffect Hook*/
+////////////////
+//Allows component to be aware of changes
+//Realize whenever we use the useState or setState our component will rerender
+//The dependency array determines when the function passed in will run (if its not provided it will run after each rerender, if its empty after the first rerender and if dependencies are provided it will run if any of those dependencies change)
+//Second argument MUST be an array or undefined
+//Here we are binding these set of values to this effect
+//You can have multiple useEffects
+//Remember if trying to update state in useEffect we might run into trouble because you will encounter an infinite loop (generally don't update state value inside useEffect without conditional checks)
+//Only use the useState var inside the useEffect or else the memory location of your object or dependency inside the useEffect hook will not work properly
+//Good for making HTTP request or interacting with DOM APIs
+function App() {
+  const [counter, setCounter] = useState(0)
+  const [counter2, setCounter2] = useState(0)
+
+  useEffect (() => {
+    console.log('Counter 1 changed')
+  }, [counter])
+
+  useEffect (() => {
+    console.log('Counter 2 changed')
+  }, [counter2])
+
+  return (
+    <div className="App">
+      <h1 onClick={() => setCounter(currentCounterValue => currentCounterValue + 1)} />
+      <h1 onClick={() => setCounter2(currentCounter2Value => currentCounter2Value + 1)} />
+    </div>
+    )
+}
+//Another Example W/ Local Storage and Lazy Loading & Nullish Operator
+import * as React from 'react'
+
+function Greeting({initialName = ''}) {
+  const [name, setName] = React.useState(() => window.localStorage.getItem('name') ?? initialName)
+
+  React.useEffect(() => {
+    window.localStorage.setItem('name', name)
+  }, [name])
+
+  function handleChange(event) {
+    setName(event.target.value)
+  }
+  return (
+    <div>
+      <form>
+        <label htmlFor="name">Name: </label>
+        <input value={name} onChange={handleChange} id="name" />
+      </form>
+      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+    </div>
+  )
+}
+
+function App() {
+  return <Greeting />
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useEffect Hook - Cleaup*/
+////////////////
+//We can return a function in useEffect as a means of cleaning up after counter 1 has been updated and the effect has ran
+//The clean up will only run when the instance of the UI is torn down and rebuilt
+function App() {
+  const [counter, setCounter] = useState(0)
+
+  useEffect (() => {
+    console.log('Counter 1 changed') //1 first time this runs //2 this runs the second time AFTER the clean up runs
+    return () => {
+      console.log('Clean up after counter 1 updated') //2 second time this runs because the first UI gets torn down and rebuilt since the var changed
+    }
+  }, [counter])
+
+  return (
+    <div className="App">
+      <h1 onClick={() => setCounter(currentCounterValue => currentCounterValue + 1)} />
+    </div>
+    )
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*USE EFFECT - HTTP Request*/
 ////////////////
 //Inside App.js
 //You cannot return anything other than the cleanup function in useEffect (can't make the callback function provided to use effect asynchrnous)
-/*
+
 function ExampleComponent({url}) {
   useEffect(() => fetchData(url), [url]);
   return (<div></div>);
 }
-
+/*
 Considering url in the depndency list and reasoning for having it there...
 
 1) That URL never changes, and the effect should only run once - GOOD.
@@ -448,631 +780,89 @@ function DiscoverBooksScreen() {
   In this case, I knew that calling setPokemon would not throw an error (React handles errors and we have an API to catch those which we’ll use later), so I decided to go with the second argument option.
   However, in this situation, it doesn’t really make much of a difference. If you want to go with the safe option, then opt for .catch.
 */
-    client(`books?query=${encodeURIComponent(query)}`).then(
-      (responseData) => {
-        setData(responseData);
-        setStatus('success');
-      },
-      (errorData) => {
-        setError(errorData);
-        setStatus('error');
-      }
-    );
-  }, [query, queried]);
 
-  function handleSearchSubmit(event) {
-    event.preventDefault();
-    setQuery(event.target.elements.search.value);
-    setQueried(true);
-  }
-
-  return (
-    <div
-      css={{ maxWidth: 800, margin: 'auto', width: '90vw', padding: '40px 0' }}
-    >
-      <form onSubmit={handleSearchSubmit}>
-        <Input
-          placeholder='Search books...'
-          id='search'
-          css={{ width: '100%' }}
-        />
-        <Tooltip label='Search Books'>
-          <label htmlFor='search'>
-            <button
-              type='submit'
-              css={{
-                border: '0',
-                position: 'relative',
-                marginLeft: '-35px',
-                background: 'transparent',
-              }}
-            >
-              {isLoading ? (
-                <Spinner />
-              ) : isError ? (
-                <FaTimes aria-label='error' css={{ colors: colors.danger }} />
-              ) : (
-                <FaSearch aria-label='search' />
-              )}
-            </button>
-          </label>
-        </Tooltip>
-      </form>
-
-      {isError ? (
-        <div css={{ color: colors.danger }}>
-          <p>There was an error:</p>
-          <pre>{error.message}</pre>
-        </div>
-      ) : null}
-
-      {isSuccess ? (
-        data?.books?.length ? (
-          <BookListUL css={{ marginTop: 20 }}>
-            {data.books.map((book) => (
-              <li key={book.id} aria-label={book.title}>
-                <BookRow key={book.id} book={book} />
-              </li>
-            ))}
-          </BookListUL>
-        ) : (
-          <p>No books found. Try another search.</p>
-        )
-      ) : null}
-    </div>
-  );
-}
-
-export { DiscoverBooksScreen };
-
-//Inside utils.js
-//Import generic client function thats exported from .utils file'./utils/api-client'
-/*NOTES ON FETCH
-The Promise returned from fetch() won’t reject on HTTP error status even if the response is an HTTP 404 or 500. Instead, as soon as the server responds with headers, the Promise will resolve normally (with the ok property of the response set to false if the response isn’t in the range 200–299), and it will only reject on network failure or if anything prevented the request from completing.
-
+//Inside utils.js - Import generic client function thats exported from .utils file'./utils/api-client'
+/*NOTES ON FETCH: The Promise returned from fetch() won’t reject on HTTP error status even if the response is an HTTP 404 or 500. 
+Instead, as soon as the server responds with headers, the Promise will resolve normally (with the ok property of the response set to false if the response isn’t in the range 200–299), 
+and it will only reject on network failure or if anything prevented the request from completing.
 fetch() won’t send cross-origin cookies unless you set the credentials init option. (Since April 2018. The spec changed the default credentials policy to same-origin. Firefox changed since 61.0b13.)
+Here we are fetching a JSON file across the network and printing it to the console. The simplest use of fetch() takes one argument: 
+the path to the resource you want to fetch — and does not directly return the JSON response body but instead returns a promise that resolves with a Response object.
+The Response object, in turn, does not directly contain the actual JSON response body but is instead a representation of the entire HTTP response. 
+So, to extract the JSON body content from the Response object, we use the json() method, which returns a second promise that resolves with the result of parsing the response body text as JSON.*/
 
-Here we are fetching a JSON file across the network and printing it to the console. The simplest use of fetch() takes one argument — the path to the resource you want to fetch — and does not directly return the JSON response body but instead returns a promise that resolves with a Response object.
-
-The Response object, in turn, does not directly contain the actual JSON response body but is instead a representation of the entire HTTP response. So, to extract the JSON body content from the Response object, we use the json() method, which returns a second promise that resolves with the result of parsing the response body text as JSON.
-*/
-import { client } from './utils/api-client';
-
-export function client(endpoint, customConfig = {}) {
+//utils.js
+export async function client(endpoint, customConfig = {}) {
   const config = {
     method: 'GET',
     ...customConfig,
   };
-
-  return window.fetch(`${endpoint}`, config).then(async (response) => {
-    const data = await response.json(); //response object does not directly include JSON response body so we use the .json() function to get that body from resp object
-    if (response.ok) { //the 'ok' property of resp object will be true if it is in range of 200-299 - see above for more details
-      return data;
-    } else {
-      return Promise.reject(data);
-    }
-  });
+  const res = await fetch(`${endpoint}`, config);
+  if (!res.ok) {
+    throw new Error(`Request failed with status ${res.status}`);
+  }
+  const data = await res.json();
+  return data;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useEffect W/ Functions*/
-/////////////////////////
-////////////////////////////////////////
-// #1: Move the function into the effect
-// Usecase: This fetchData call is only ever used in this local useEffect.
-/* If you plan on ever only using this function in this single useEffect, the most straightforward and suggested solution is to move the function directly into the effect closure.
-This works for everything we discussed previous, and it ensures that our effect function itself is as pure and referentially transparent as possible.
-It encapsulates the logic to one area and also lets developers know this function is intended as a side effect. So what does that look like
-*/
-function ExampleComponent({url}) {
-  useEffect(() => {
-    const fetchData = (url) => {
-	  // fetch call here
-	  }
 
-    fetchData(url)
-  }, [url]);
-  return (<div></div>);
-}
-//Since the fetchData function is now part of our effect, it is no longer a dependency of our effect, and we can simply remove it from the dependency array.
-////////////////////////////////////////////////////
-//Approach #2: Memoize the function with useCallback
-//Usecase: This function is used in multiple local hooks or is going to be passed down in a child component
-/*useCallback is one of the new hooks available to React. 
-It allows us to memoize a function so that on subsequent updates of the component, the function keeps its referential equality, and therefore does not trigger the effect.
-useCallbacks use the same dependency array that a useEffect does, so if the values or functions it depends on change, it will be reinitialized.*/
-/* Knowing that we can store the reference to a spot in memory for a given function, we can pass that reference into a dependency array of a useEffect. 
-If the component is rerendered, and that function is not pointing to the same spot in memory (even if it’s the same function and parameters), 
-the useEffect will be called again because it sees it as a new function. 
-If we can memoize (remember) the function reference, that means we can stop the useEffect from rerunning unless it truly has changed. Let’s see what that looks like.
-////////////////////
-If you are only going to do a single use of the function, I recommend moving the logic in like below, but this pattern is handy when you need to pass the function into multiple useEffects.
-You’ll find useCallback even handier when passing functions down into child components. If we don’t use this pattern, the child component will rerender every update, even if it is memoized. 
-That’s because the function will never have the same referential equality to the previous render. 
-Even more, if that child component has any hooks dependent on that function, the will be recalled every time. 
-For that reason, it’s always a good bet to build your functions that are being passed to child components with useCallback.*/
-function ExampleComponent({url}) {
-	const fetchData = useCallback(() => {
-	  // fetch call here
-	}, [url]);
-	
-  useEffect(() => fetchData(), [fetchData]);
-  return (<div></div>);
-}
-/*
-Note: This does not mean you should build every function with useCallback. It’s only crucial if it is being passed to child components. 
-Memoizing local functions calls can often add unnecessary overhead and complexity to your code.
-
-So, we know that if we are using our functions in a dependency array, we should memoize them by wrapping this in a useEffect.
-If we don’t do this, the effect will rerun after every update of the component.
-So then, why in the original example of the useEffect did I now do that with the setData function?
-*/
-
-export function CatFacts({ id }) {
-  const [data, setData] = useState();
-  useEffect(() => {
-    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-    const targetUrl = `https://cat-fact.herokuapp.com/facts/${id}`;
-    fetch(proxyUrl + targetUrl)
-      .then(response => response.json())
-      .then(facts => {
-        setData(facts.text);
-      });
-  }, [id, setData]);
-
-  return <div>Cat Fact: {data}</div>;
-
-/*That’s because the function returned in the useState hook is already memoized for you. The same goes for useReducer. 
-And this sets up a fundamental design principle for you as a developer moving forward as you create your hooks. 
-If you are returning a function from your hook, it’s highly likely you want that function memoized, so that developers can use them without the extra overhead of handling them.*/
-//Last Example
-//Link - https://codesandbox.io/s/useeffectwithandwithoutcallback-t3gff
+//App.js
+import React from 'react';
+import AllPokemon from './components/AllPokemon/AllPokemon';
+import { client } from './utils';
 function App() {
-  const [index, setIndex] = useState(0);
-  const notMemoized = () => {
-    console.log("Rendered no callback");
-  };
+  const [state, setState] = React.useState({
+    pokemon: [],
+    status: 'loading',
+    error: null,
+  });
 
-  const memoized = useCallback(() => console.log("Rendered callback"), []);
+  const { status, error, pokemon } = state;
+
+  const endpoint =
+    'https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json';
+
+  React.useEffect(() => {
+    setState((state) => {
+      return { ...state, status: 'loading' };
+    });
+
+    //where we utilize client
+    client(endpoint)
+      .then((data) => {
+        setState((state) => {
+          return { ...state, pokemon: data.pokemon, status: 'success' };
+        });
+      })
+      .catch((error) => {
+        setState((state) => {
+          return {
+            ...state,
+            error: error.message,
+            status: 'error',
+          };
+        });
+      });
+      //end of utilize client
+
+    return () => {
+      setState({});
+    };
+  }, []);
 
   return (
-    <div className="App">
-      <h1>Hello CodeSandbox</h1>
-      <h2>Start editing to see some magic happen!</h2>
-      <DemoEffect dep={notMemoized} />
-      <DemoEffect dep={memoized} />
-      <button onClick={() => setIndex(index + 1)}>Rerender</button>
-    </div>
+    <>
+      {status === 'loading' ? (
+        <div>Loading</div>
+      ) : status === 'error' ? (
+        <div>{error}</div>
+      ) : (
+        <AllPokemon pokemon={pokemon} />
+      )}
+    </>
   );
 }
 
-function DemoEffect({ dep }) {
-  useEffect(() => dep(), [dep]);
-  return <div>Demo Effect</div>;
-}
-//////////////////////////////////////////
-//Approach #3: Import the function instead
-/*The last style we can use for our fetchData function actually moves it outside of the component itself. 
-This is a style that isn’t often talked about as much as the prior two, but, depending on what it does, can often be my favourite. 
-This style does need for you to use the ESM import style in your modules, and not the CJS style.
-
-Note: Without going too into detail, this is because import statements are going to give us a single instance of a function that cannot be mutated, 
-whereas an exported module with CJS can be mutated. This is also why ESM is statically analyzable. If you do want to read more about this, 
-modules are talked about quite frequently in be Reducing JS Bundle Size series.*/
-
-//In the example above, this could look something like this:
-
-import { fetchData } from './utils';
-
-export function CatFacts({ id }) {
-  const [data, setData] = useState();
-  useEffect(() => {
-   fetchData(id, setData)
-  }, [id, setData]);
-
-  return <div>Cat Fact: {data}</div>;
-
-/*Because the module cannot be mutated, we don’t have to specify the function in our dependency array, as it’s not possible for it to change. 
-Now, you can still place the function in the dependency array, but even the ESLint won’t force you to do this. So why is this better? 
-Just to avoid putting the function in the dependency array?
-
-The biggest reason I often will split out my functions into utils functions like this is to increase the testability of it. 
-Sometimes I will have some complex logic in my useEffect that I would like to test individually. Now, there are ways to test hooks, but they are a lot more challenging to do. 
-I also find that splitting these chunks of code into named functions increases the readability of my code, so it often is more helpful to do this already, 
-and moving it to a new module gives me better testing for free.
-
-Last, when we do this, it also makes it easier to mock the side effects of that effect when we are doing integration testing of that component. 
-In this example, we’ve split out the actual async “fetch” side effect. We could mock the fetchData method, and instead, 
-just call the setData argument to be filled with what data we want to test against.
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*HTTP Request - Maintaining State in an Object*/
-////////////////////////////////////////////////
-//When making HTTP Requests its best to use a 'status' to indicate where we are in deciding what to render
-//Here it is easier to maintain all state in an object instead of chaining updates to state
-import * as React from 'react'
-import {
-  fetchPokemon,
-  PokemonInfoFallback,
-  PokemonForm,
-  PokemonDataView,
-} from '../pokemon'
-
-function PokemonInfo({pokemonName}) {
-  const [state, setState] = React.useState({
-    status: 'idle',
-    pokemon: null,
-    error: null,
-  })
-  const {status, pokemon, error} = state
-
-  React.useEffect(() => {
-    if (!pokemonName) {
-      return
-    }
-    setState({status: 'pending'})
-    fetchPokemon(pokemonName).then(
-      pokemon => {
-        setState({status: 'resolved', pokemon})
-      },
-      error => {
-        setState({status: 'rejected', error})
-      },
-    )
-  }, [])
-
-  if (status === 'idle') {
-    return 'Submit a pokemon'
-  } else if (status === 'pending') {
-    return <PokemonInfoFallback name={pokemonName} />
-  } else if (status === 'rejected') {
-    return (
-      <div>
-        There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-      </div>
-    )
-  } else if (status === 'resolved') {
-    return <PokemonDataView pokemon={pokemon} />
-  }
-
-  throw new Error('This should be impossible')
-}
-
-function App() {
-  const [pokemonName, setPokemonName] = React.useState('')
-
-  function handleSubmit(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
-
-  return (
-    <div className="pokemon-info-app">
-      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
-      <hr />
-      <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
-      </div>
-    </div>
-  )
-}
-
-export default App
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Error Boundaries*/
-///////////////////
-//Use the react-error-boundary library for error boundaries
-//Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed.
-//Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Authentication*/
-//////////////////
-//Inside app.js
-//Create get user function that sets user to null if there is no token provided, otherwise set user data to data state
-//If there is a user we pass it as the second argument to our client function
-//Getting our status functions from custom hook useAsync()
-//We load either the Authenticated or Unauthenticated App Component based on whether or not we have user information (if the user is logged in)
-//We use the Authorization library to handle the login and registration for the user passing in the form login and password information
-//We show a full page loading spinner component whenever the status is loading
-//We show an error component whenever we get an error
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-import * as React from 'react';
-import * as auth from 'auth-provider';
-import { FullPageSpinner } from './components/lib';
-import * as colors from './styles/colors';
-import { client } from './utils/api-client';
-import { useAsync } from './utils/hooks';
-import { AuthenticatedApp } from './authenticated-app';
-import { UnauthenticatedApp } from './unauthenticated-app';
-
-async function getUser() {
-  let user = null;
-
-  const token = await auth.getToken();
-  if (token) {
-    const data = await client('me', { token });
-    user = data.user;
-  }
-
-  return user;
-}
-
-function App() {
-  const {
-    data: user,
-    error,
-    isLoading,
-    isIdle,
-    isError,
-    isSuccess,
-    run,
-    setData,
-  } = useAsync();
-
-  React.useEffect(() => {
-    run(getUser());
-  }, [run]);
-
-  const login = (form) => auth.login(form).then((user) => setData(user));
-  const register = (form) => auth.register(form).then((user) => setData(user));
-  const logout = () => {
-    auth.logout();
-    setData(null);
-  };
-
-  if (isLoading || isIdle) {
-    return <FullPageSpinner />;
-  }
-
-  if (isError) {
-    return (
-      <div
-        css={{
-          color: colors.danger,
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <p>Uh oh... There's a problem. Try refreshing the app.</p>
-        <pre>{error.message}</pre>
-      </div>
-    );
-  }
-
-  if (isSuccess) {
-    return user ? (
-      <AuthenticatedApp user={user} logout={logout} />
-    ) : (
-      <UnauthenticatedApp login={login} register={register} />
-    );
-  }
-}
-
-export { App };
-//Inside utils.js and utilizing the client function which makes the http request
-//We are now accepting data, token, customerHeaders, and customerConfig passed into client from app.js as an object {token} is what were using for now
-//but if non are provided we default to an empty object
-//We are destructuring these variables
-//in params we are assigning the headers param passed in to a new variable named customerHeaders (like an alias in the params)
-//in params we are assigning  the 'rest' of the arguments to the customerConfig variable by using the rest operator
-//We initialie our config object we will pass to our fetch request
-//if data exists will set method to 'POST' if none it will be 'GET'
-//if data we will set a body to 'JSON.stringify(data)' if none we will set body to undefined
-//if token we will set Authorization to `Bearer ${token}` if none it will be undefined
-//if data we will make then Content-Type 'application/json' if none it will be undefined
-//we spread any other customerHeaders inside the headers param in the config object that were passed into the object that was passed to client
-//we spread any other customerConfig options that were passed into the object that was passed to client
-import * as auth from 'auth-provider';
-import { code } from 'esutils';
-import { builtinModules } from 'module';
-import { string } from 'prop-types'
-const apiURL = process.env.REACT_APP_API_URL;
-
-function client(
-  endpoint,
-  { data, token, headers: customHeaders, ...customConfig } = {}
-) {
-  const config = {
-    method: data ? 'POST' : 'GET',
-    body: data ? JSON.stringify(data) : undefined,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : undefined,
-      'Content-Type': data ? 'application/json' : undefined,
-      ...customHeaders,
-    },
-    ...customConfig,
-  };
-
-  //We pass our confid options as an extra argument into the fetch api
-  //If we get a 401 code (user trying to access information they shouldn't) then we log the user out and refresh the page
-  //window.location.assign(window.location); will refresh the page and erase any headers we had in the browser
-  //return Promise.reject({ message: 'Please re-authenticate.' }); will return a rejection from the fetch request and supply the message 'Please re-authenticate.'
-  return window
-    .fetch(`${apiURL}/${endpoint}`, config)
-    .then(async (response) => {
-      if (response.status === 401) {
-        await auth.logout();
-        // refresh the page for them
-        window.location.assign(window.location);
-        return Promise.reject({ message: 'Please re-authenticate.' });
-      }
-      const data = await response.json();
-      if (response.ok) {
-        return data;
-      } else {
-        return Promise.reject(data);
-      }
-    });
-}
-
-export { client };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Lifting State*/
-////////////////
-//Lifting state meants finding the lowest common parent shared between the two components and placing the state management there, and then passing the state and a mechanism for updating that state down into the components that need it.
-//We can pass the callback function two ways - passing an anonymous function as the prop OR passing the fallback and calling the callback with an anonmyous function within the child
-//Colocation (having state inside the only component that needs it or the lowest common parent) is great because only the loest child component will have to rerender whenever state changes
-import * as React from 'react'
-
-function Name() {
-  const [name, setName] = React.useState('')
-  return (
-    <div>
-      <label htmlFor="name">Name: </label>
-      <input
-        id="name"
-        value={name}
-        onChange={event => setName(event.target.value)}
-      />
-    </div>
-  )
-}
-
-function FavoriteAnimal({animal, onAnimalChange}) {
-  return (
-    <div>
-      <label htmlFor="animal">Favorite Animal: </label>
-      <input id="animal" value={animal} onChange={onAnimalChange} />
-    </div>
-  )
-}
-
-function Display({animal}) {
-  return <div>{`Your favorite animal is: ${animal}!`}</div>
-}
-
-function App() {
-  const [animal, setAnimal] = React.useState('')
-  return (
-    <form>
-      <Name />
-      <FavoriteAnimal
-        animal={animal}
-        onAnimalChange={event => setAnimal(event.target.value)}
-      />
-      <Display animal={animal} />
-    </form>
-  )
-}
-
-export default App
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useState Hook*/
-////////////////
-//here we destructure an array provided by the useState function given by React
-function App() {
-  const [counter, setCounter] = useState(0)
-}
-//we can lazily load the initial value for useState if it is an expensive computation
-//this works because if we just put an actual function (e.g. useState(myFunction())) then my function will get rendered every time the component rerenders because it is being called, however, if we provide an anonymous function that returns a function it will only be called once
-//after the first render the useState() hook will have served its purpose and will not be called again!
-function App() {
-  const [counter, setCounter] = useState(() => {
-    myFunction();
-    return 0;
-  })
-}
-//lastly, we can use the current value of state to determine the next value of state if it depends on the previous value of state
-//here React checks if setCounter is called with a function it will give that function a parameter that is equivalent to the latest value of state here which is 'currentStateValue'
-function App() {
-  const [counter, setCounter] = useState(0)
-  //counter = 0
-  return (
-    <div className="App">
-      <h1 onClick={() => 
-      setCounter(currentStateValue => currentStateValue + 1)
-      setTimeout((currentStateValue) => {
-        setCounter(currentStateValue)
-      }, 1000)
-      setTimeout((currentStateValue) => {
-        setCounter(currentStateValue)
-      }, 3000)} />
-    </div>
-    )
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useEffect Hook*/
-////////////////
-//Allows component to be aware of changes
-//Realize whenever we use the useState or setState our component will rerender
-//The dependency array determines when the function passed in will run (if its not provided it will run after each rerender, if its empty after the first rerender and if dependencies are provided it will run if any of those dependencies change)
-//Second meeting MUST be an array or undefined
-//Here we are binding these set of values to this effect
-//You can have multiple useEffects
-//Remember if trying to update state in useEffect we might run into trouble because you will encounter an infinite loop (generally don't update state value inside useEffect without conditional checks)
-//Only use the useState var inside the useEffect or else the memory location of your object or dependency inside the useEffect hook will not work properly
-//Good for making HTTP request or interacting with DOM APIs
-function App() {
-  const [counter, setCounter] = useState(0)
-  const [counter2, setCounter2] = useState(0)
-
-  useEffect (() => {
-    console.log('Counter 1 changed')
-  }, [counter])
-
-  useEffect (() => {
-    console.log('Counter 2 changed')
-  }, [counter2])
-
-  return (
-    <div className="App">
-      <h1 onClick={() => setCounter(currentCounterValue => currentCounterValue + 1)} />
-      <h1 onClick={() => setCounter2(currentCounter2Value => currentCounter2Value + 1)} />
-    </div>
-    )
-}
-//Another Example W/ Local Storage and Lazy Loading & Nullish Operator
-import * as React from 'react'
-
-function Greeting({initialName = ''}) {
-  const [name, setName] = React.useState(() => window.localStorage.getItem('name') ?? initialName)
-
-  React.useEffect(() => {
-    window.localStorage.setItem('name', name)
-  }, [name])
-
-  function handleChange(event) {
-    setName(event.target.value)
-  }
-  return (
-    <div>
-      <form>
-        <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
-      </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
-    </div>
-  )
-}
-
-function App() {
-  return <Greeting />
-}
-
-export default App
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useEffect Hook - Cleaup*/
-////////////////
-//We can return a function in useEffect as a means of cleaning up after counter 1 has been updated and the effect has ran
-//The clean up will only run when the instance of the UI is torn down and rebuilt
-function App() {
-  const [counter, setCounter] = useState(0)
-
-  useEffect (() => {
-    console.log('Counter 1 changed') //1 first time this runs //2 this runs the second time AFTER the clean up runs
-    return () => {
-      console.log('Clean up after counter 1 updated') //2 second time this runs because the first UI gets torn down and rebuilt since the var changed
-    }
-  }, [counter])
-
-  return (
-    <div className="App">
-      <h1 onClick={() => setCounter(currentCounterValue => currentCounterValue + 1)} />
-    </div>
-    )
-}
+export default App;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useLayoutEffect Hook*/
 //////////////////////
@@ -1239,407 +1029,133 @@ function init(initialStateFromProps) {
 
 const [state, dispatch] = React.useReducer(reducer, props.initialState, init)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useRef Hook - useContext*/
-///////////////////////////
-//Sharing state between components is a common problem. The best solution for this is to 📜 lift your state. This requires 📜 prop drilling which is not a problem, but there are some times where prop drilling can cause a real pain.
-//To avoid this pain, we can insert some state into a section of our react tree, and then extract that state anywhere within that react tree without having to explicitly pass it everywhere.
-//This feature is called context. In some ways it’s like global variables, but it doesn’t suffer from the same problems (and maintainability nightmares) of global variables thanks to how the API works to make the relationships explicit.
-//Keep in mind that while context makes sharing state easy, it’s not the only solution to Prop Drilling pains and it’s not necessarily the best solution either. 
-//React’s composition model is powerful and can be used to avoid issues with prop drilling as well.
-//Read here for more: https://twitter.com/mjackson/status/1195495535483817984
-//Example
-//<FooDisplay /> could appear anywhere in the render tree, and it will have access to the value which is passed by the FooContext.Provider component.
-import * as React from 'react'
+/*useCallback & useEffect W/ Functions*/
+////////////////////////////////////////
+// #1: Move the function into the effect
+// Usecase: This fetchData call is only ever used in this local useEffect.
+/* If you plan on ever only using this function in this single useEffect, the most straightforward and suggested solution is to move the function directly into the effect closure.
+This works for everything we discussed previous, and it ensures that our effect function itself is as pure and referentially transparent as possible.
+It encapsulates the logic to one area and also lets developers know this function is intended as a side effect. So what does that look like*/
+function ExampleComponent({url}) {
+  useEffect(() => {
+    const fetchData = (url) => {
+	  // fetch call here
+	  }
 
-//Need our contenxt component in order to initiailze context to a useContext hook and use it as a wrapper in which you pass your value/state to which will be assigned to the variable you assigned to useContext
-const FooContext = React.createContext()
-
-function FooDisplay() {
-  const foo = React.useContext(FooContext)//here you are assigning the value/state you pass the wrapper to a var in your component
-  return <div>Foo is: {foo}</div>
+    fetchData(url)
+  }, [url]);
+  return (<div></div>);
 }
-
-ReactDOM.render(
-  <FooContext.Provider value="I am foo">
-    <FooDisplay />
-  </FooContext.Provider>,
-  document.getElementById('root'),
-)
-// renders <div>Foo is: I am foo</div>
-
-//another example more context no pun
-
-import * as React from 'react'
-
-const CountContext = React.createContext()//define context sort of like a global state with convention MyVarContext or MyStateContext
-
-function CountProvider(props) {//create the Provider component with same convention MyVarProvider or MyStateProvider
-  const [count, setCount] = React.useState(0)
-  const value = [count, setCount]//want the value to be whatever is shared among both components that need either or both the count and setCount
-  // could also do it like this:
-  // const value = React.useState(0)
-  return <CountContext.Provider value={value} {...props} />//return the component with MyVarContext.Provider or MyStateContext.Provider (use the context component you created above and pass any your value and props)
-  //also may provide all other props you want to define inline when using the <CountProvider example={0}  example2={'foo'} /> component
+// Since the fetchData function is now part of our effect, it is no longer a dependency of our effect, and we can simply remove it from the dependency array.
+////////////////////////////////////////////////////
+// Approach #2: Memoize the function with useCallback
+// Usecase: This function is used in multiple local hooks or is going to be passed down in a child component
+// useCallback is one of the new hooks available to React. 
+// It allows us to memoize a function so that on subsequent updates of the component, the function keeps its referential equality, and therefore does not trigger the effect.
+// useCallbacks use the same dependency array that a useEffect does, so if the values or functions it depends on change, it will be reinitialized.
+// Knowing that we can store the reference to a spot in memory for a given function, we can pass that reference into a dependency array of a useEffect. 
+// If the component is rerendered, and that function is not pointing to the same spot in memory (even if it’s the same function and parameters), 
+// the useEffect will be called again because it sees it as a new function. 
+// If we can memoize (remember) the function reference, that means we can stop the useEffect from rerunning unless it truly has changed. Let’s see what that looks like.
+////////////////////
+// If you are only going to do a single use of the function, I recommend moving the logic in like below, but this pattern is handy when you need to pass the function into multiple useEffects.
+// You’ll find useCallback even handier when passing functions down into child components. If we don’t use this pattern, the child component will rerender every update, even if it is memoized. 
+// That’s because the function will never have the same referential equality to the previous render. 
+// Even more, if that child component has any hooks dependent on that function, the will be recalled every time. 
+// For that reason, it’s always a good bet to build your functions that are being passed to child components with useCallback.
+function ExampleComponent({url}) {
+	const fetchData = useCallback(() => {
+	  // fetch call here
+	}, [url]);
+	
+  useEffect(() => fetchData(), [fetchData]);
+  return (<div></div>);
 }
+/*
+Note: This does not mean you should build every function with useCallback. It’s only crucial if it is being passed to child components. 
+Memoizing local functions calls can often add unnecessary overhead and complexity to your code.
 
-function CountDisplay() {
-  const [count] = React.useContext(CountContext)//here we have access to the context value passed into value which we destructure as we passed [count,setCount]
-  return <div>{`The current count is ${count}`}</div>
-}
+So, we know that if we are using our functions in a dependency array, we should memoize them by wrapping this in a useEffect.
+If we don’t do this, the effect will rerun after every update of the component.
+So then, why in the original example of the useEffect did I now do that with the setData function?
+*/
 
-function Counter() {
-  const [, setCount] = React.useContext(CountContext)//here we leave the first destructure null but pluck off setCount as its the second argument passed to value [count, setCount] which we provided in the CountProvider component
-  const increment = () => setCount(c => c + 1)
-  return <button onClick={increment}>Increment count</button>
-}
+export function CatFacts({ id }) {
+  const [data, setData] = useState();
+  useEffect(() => {
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    const targetUrl = `https://cat-fact.herokuapp.com/facts/${id}`;
+    fetch(proxyUrl + targetUrl)
+      .then(response => response.json())
+      .then(facts => {
+        setData(facts.text);
+      });
+  }, [id, setData]);
 
+  return <div>Cat Fact: {data}</div>;
+
+/*That’s because the function returned in the useState hook is already memoized for you. The same goes for useReducer. 
+And this sets up a fundamental design principle for you as a developer moving forward as you create your hooks. 
+If you are returning a function from your hook, it’s highly likely you want that function memoized, so that developers can use them without the extra overhead of handling them.*/
+//Last Example
+//Link - https://codesandbox.io/s/useeffectwithandwithoutcallback-t3gff
 function App() {
-  return (
-    <div>
-      <CountProvider>{/*Here we wrap our components using the value coming from CountProvider with the CountProvider component that uses the CountContext we created with CountContext.createContext()*/}
-        <CountDisplay />
-        <Counter />
-      </CountProvider>
-    </div>
-  )
-}
-
-export default App
-
-//another version with custom hook and error handling
-//we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
-//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom hook (think of useCount as the value returned from provider)
-//if the component we are using this in is not within the CountProvider it won't work and will throw an error
-import * as React from 'react'
-
-//SHOULD BE IN OWN MODULE
-const CountContext = React.createContext()
-
-function CountProvider(props) {
-  const [count, setCount] = React.useState(0)
-  const value = [count, setCount]
-  return <CountContext.Provider value={value} {...props} />
-}
-
-function useCount() {
-  const context = React.useContext(CountContext) //getting value from provider
-  if (!context) {
-    throw new Error('useCount must be used within a CountProvider')
-  }
-  return context //returning value from provider
-}
-//END SHOULD BE IN OWN MODULE
-
-function CountDisplay() {
-  const [count] = useCount()
-  return <div>{`The current count is ${count}`}</div>
-}
-
-function Counter() {
-  const [, setCount] = useCount()
-  const increment = () => setCount(c => c + 1)
-  return <button onClick={increment}>Increment count</button>
-}
-
-function App() {
-  return (
-    <div>
-      <CountProvider>
-        <CountDisplay />
-        <Counter />
-      </CountProvider>
-    </div>
-  )
-}
-
-export default App
-
-//another example - larger more realy world - cache
-import * as React from 'react'
-import {
-  fetchPokemon,
-  PokemonForm,
-  PokemonDataView,
-  PokemonInfoFallback,
-  PokemonErrorBoundary,
-} from '../pokemon'
-import {useAsync} from '../utils'
-
-// 🐨 Create a PokemonCacheContext
-const PokemonCacheContext = React.createContext()
-// 🐨 create a PokemonCacheProvider function
-function PokemonCacheProvider(props) {
-  function pokemonCacheReducer(state, action) {
-    switch (action.type) {
-      case 'ADD_POKEMON': {
-        return {...state, [action.pokemonName]: action.pokemonData}
-      }
-      default: {
-        throw new Error(`Unhandled action type: ${action.type}`)
-      }
-    }
-  }
-  const [cache, dispatch] = React.useReducer(pokemonCacheReducer, {})
-  const value = [cache, dispatch]
-  return <PokemonCacheContext value={value} {...props} />
-}
-
-function PokemonInfo({pokemonName}) {
-  const [cache, dispatch] = React.useContext(PokemonCacheContext)
-  const {data: pokemon, status, error, run, setData} = useAsync()
-  React.useEffect(() => {
-    if (!pokemonName) {
-      return
-    } else if (cache[pokemonName]) {
-      setData(cache[pokemonName])
-    } else {
-      run(
-        fetchPokemon(pokemonName).then(pokemonData => {
-          dispatch({type: 'ADD_POKEMON', pokemonName, pokemonData})
-          return pokemonData
-        }),
-      )
-    }
-  }, [cache, pokemonName, run, setData])
-
-  if (status === 'idle') {
-    return 'Submit a pokemon'
-  } else if (status === 'pending') {
-    return <PokemonInfoFallback name={pokemonName} />
-  } else if (status === 'rejected') {
-    throw error
-  } else if (status === 'resolved') {
-    return <PokemonDataView pokemon={pokemon} />
-  }
-}
-
-function PreviousPokemon({onSelect}) {
-  // 🐨 get the cache from useContext with PokemonCacheContext
-  const cache = React.useContext(PokemonCacheContext)
-  return (
-    <div>
-      Previous Pokemon
-      <ul style={{listStyle: 'none', paddingLeft: 0}}>
-        {Object.keys(cache).map(pokemonName => (
-          <li key={pokemonName} style={{margin: '4px auto'}}>
-            <button
-              style={{width: '100%'}}
-              onClick={() => onSelect(pokemonName)}
-            >
-              {pokemonName}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function PokemonSection({onSelect, pokemonName}) {
-  // 🐨 wrap this in the PokemonCacheProvider so the PreviousPokemon
-  // and PokemonInfo components have access to that context.
-  return (
-    <PokemonCacheProvider>
-      <div style={{display: 'flex'}}>
-        <PreviousPokemon onSelect={onSelect} />
-        <div className="pokemon-info" style={{marginLeft: 10}}>
-          <PokemonErrorBoundary
-            onReset={() => onSelect('')}
-            resetKeys={[pokemonName]}
-          >
-            <PokemonInfo pokemonName={pokemonName} />
-          </PokemonErrorBoundary>
-        </div>
-      </div>
-    </PokemonCacheProvider>
-  )
-}
-
-function App() {
-  const [pokemonName, setPokemonName] = React.useState(null)
-
-  function handleSubmit(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
-
-  function handleSelect(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
-
-  return (
-    <div className="pokemon-info-app">
-      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
-      <hr />
-      <PokemonSection onSelect={handleSelect} pokemonName={pokemonName} />
-    </div>
-  )
-}
-
-export default App
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useRef Hook - DOM Element Access*/
-///////////////////////////////////
-//For refs on the DOM we want to use the useRef variable inside a useEffect
-//Remember that when you do: <div>hi</div> that’s actually syntactic sugar for a React.createElement so you don’t actually have access to DOM nodes in your function component.
-//In fact, DOM nodes aren’t created at all until the ReactDOM.render method is called. 
-//Your function component is really just responsible for creating and returning React Elements and has nothing to do with the DOM in particular.
-//To get access to the DOM, you need to ask React to give you access to a particular DOM node when it renders your component. The way this happens is through a special prop called ref.
-//After the component has been rendered, it’s considered “mounted.” That’s when the React.useEffect callback is called and so by that point, the ref should have its current property set to the DOM node.
-//So often you’ll do direct DOM interactions/manipulations in the useEffect callback.
-//most of the time we don't want to hook into dom element by manipulating dom directly with document.getElementById or something
-//ref is an object that stays consistent between renders of your React component. It has a current property on it which can be updated to any value at any time. 
-//In the case of interacting with DOM nodes, you can pass a ref to a React element and React will set the current property to the DOM node that’s rendered.
-//we need to make sure we are using the ref.current.value (current is important)
-//useRef on every render will return the same object - whatever we store in it will be stored as the current properties values and can be modified without a component rerender
-function TextInputWithFocusButton() {
-  const inputEl = useRef(null);
-  const onButtonClick = () => {
-    // `current` points to the mounted text input element
-    inputEl.current.focus();
-    console.log(inputEl.current.value) // notice we don't need the target here (target would be the form)
+  const [index, setIndex] = useState(0);
+  const notMemoized = () => {
+    console.log("Rendered no callback");
   };
+
+  const memoized = useCallback(() => console.log("Rendered callback"), []);
+
   return (
-    <>
-      <input ref={inputEl} type="text" />
-      <button onClick={onButtonClick}>Focus the input</button>
-    </>
+    <div className="App">
+      <h1>Hello CodeSandbox</h1>
+      <h2>Start editing to see some magic happen!</h2>
+      <DemoEffect dep={notMemoized} />
+      <DemoEffect dep={memoized} />
+      <button onClick={() => setIndex(index + 1)}>Rerender</button>
+    </div>
   );
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*useRef Hook - Mutable Objects*/
-//////////////////
-//another example demonstrating how we can change this object 'obj' value without a rerender or rerender without the value changing (it can be mutated but if you update obj.current it will not trigger a rerender)
-//can store a mutable value inside your function while also getting free memory clean up
-//e.g. cons obj = useRef({json: '<heavy>...'}) - this memory will be freed once the component is unmounted vs not being freed if it is in the global space
-function App() {
-  const obj = useRef(5) //{current: 5}
-  const [counter, setCounter] = useState(0)
 
+function DemoEffect({ dep }) {
+  useEffect(() => dep(), [dep]);
+  return <div>Demo Effect</div>;
+}
+//////////////////////////////////////////
+//Approach #3: Import the function instead
+/*The last style we can use for our fetchData function actually moves it outside of the component itself. 
+This is a style that isn’t often talked about as much as the prior two, but, depending on what it does, can often be my favourite. 
+This style does need for you to use the ESM import style in your modules, and not the CJS style.
+
+Note: Without going too into detail, this is because import statements are going to give us a single instance of a function that cannot be mutated, 
+whereas an exported module with CJS can be mutated. This is also why ESM is statically analyzable. If you do want to read more about this, 
+modules are talked about quite frequently in be Reducing JS Bundle Size series.*/
+
+//In the example above, this could look something like this:
+
+import { fetchData } from './utils';
+
+export function CatFacts({ id }) {
+  const [data, setData] = useState();
   useEffect(() => {
-    console.log('Effect ran!')
-  }, [obj])
+   fetchData(id, setData)
+  }, [id, setData]);
 
-  useEffect(() => {
-    obj.current *= 5
-  }, [counter])
+  return <div>Cat Fact: {data}</div>;
 
-  return (<div className="App">
-    <h1 onClick={() => setCounter(val => val + 1)}>Hello World {counter}</h1>
-  </div>)
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Custom Hooks - useMyFunction*/
-///////////////////////////////
-//Good for making areusable functions or making hooks you are currently using more generic (e.g. grabbing state from local stoage and setting local storage based on state) 
-//Cutom Hooks need to start with 'use' without quotes e.g. useLocalStorageState
-//Custom Hooks are merely functions that use other hooks (prebuilt hooks or custom hooks)
+/*Because the module cannot be mutated, we don’t have to specify the function in our dependency array, as it’s not possible for it to change. 
+Now, you can still place the function in the dependency array, but even the ESLint won’t force you to do this. So why is this better? 
+Just to avoid putting the function in the dependency array?
 
-import * as React from 'react'
+The biggest reason I often will split out my functions into utils functions like this is to increase the testability of it. 
+Sometimes I will have some complex logic in my useEffect that I would like to test individually. Now, there are ways to test hooks, but they are a lot more challenging to do. 
+I also find that splitting these chunks of code into named functions increases the readability of my code, so it often is more helpful to do this already, 
+and moving it to a new module gives me better testing for free.
 
-function useLocalStorageState(key, defaultValue = '') {
-  const [state, setState] = React.useState(
-    () => window.localStorage.getItem(key) || defaultValue,
-  )
-
-  React.useEffect(() => {
-    window.localStorage.setItem(key, state)
-  }, [key, state])
-
-  return [state, setState] //notice we return the hook in the same way we expect to use our useState hook where we need this hook
-}
-
-function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageState('name', initialName)
-
-  function handleChange(event) {
-    setName(event.target.value)
-  }
-
-  return (
-    <div>
-      <form>
-        <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
-      </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
-    </div>
-  )
-}
-
-function App() {
-  return <Greeting />
-}
-
-export default App
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Custom Hooks - useMyFunction - MORE GENERIC*/
-//////////////////////////////////////////////
-//Great for bringing huge and generic customization of hooks that already exist!
-import * as React from 'react'
-
-function useLocalStorageState(
-  key,
-  defaultValue = '',
-  // the = {} fixes the error we would get from destructuring when no argument was passed
-  // Check https://jacobparis.com/blog/destructure-arguments for a detailed explanation
-  {serialize = JSON.stringify, deserialize = JSON.parse} = {}, 
-  //JSON.stringify() can be used to stringify anything like an object or value
-  //JSON.parse does the opposite - pulls the string without having quotes
-) {
-  const [state, setState] = React.useState(() => {
-    const valueInLocalStorage = window.localStorage.getItem(key)
-    if (valueInLocalStorage) {
-      // the try/catch is here in case the localStorage value was set before
-      // we had the serialization in place (like we do in previous extra credits)
-      try {
-        return deserialize(valueInLocalStorage)
-      } catch (error) {
-        window.localStorage.removeItem(key)
-      }
-    }
-    return typeof defaultValue === 'function' ? defaultValue() : defaultValue //checking if value is a function (computationally expensive) then we want to call it aka lazy load and if not we want to leave it as a value
-  })
-
-  // Here we are using the useRef to store the previous key without having to rerender if it changes
-  const prevKeyRef = React.useRef(key)
-
-  // Check the example at src/examples/local-state-key-change.js to visualize a key change
-  // here we compare the prev key to the new key - if they don't match we remove the old key/item from localstorage and store it with our new key
-  React.useEffect(() => {
-    const prevKey = prevKeyRef.current
-    if (prevKey !== key) {
-      window.localStorage.removeItem(prevKey)
-    }
-    prevKeyRef.current = key
-    window.localStorage.setItem(key, serialize(state))
-  }, [key, state, serialize])
-
-  return [state, setState]
-}
-
-function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageState('name', initialName)
-
-  function handleChange(event) {
-    setName(event.target.value)
-  }
-
-  return (
-    <div>
-      <form>
-        <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
-      </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
-    </div>
-  )
-}
-
-function App() {
-  return <Greeting />
-}
-
-export default App
+Last, when we do this, it also makes it easier to mock the side effects of that effect when we are doing integration testing of that component. 
+In this example, we’ve split out the actual async “fetch” side effect. We could mock the fetchData method, and instead, 
+just call the setData argument to be filled with what data we want to test against.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*useMemo*/
 //////////
@@ -1962,7 +1478,633 @@ function AppWithUnmountCheckbox() {
 }
 
 export default AppWithUnmountCheckbox
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useRef Hook - useContext*/
+///////////////////////////
+//Sharing state between components is a common problem. The best solution for this is to 📜 lift your state. This requires 📜 prop drilling which is not a problem, but there are some times where prop drilling can cause a real pain.
+//To avoid this pain, we can insert some state into a section of our react tree, and then extract that state anywhere within that react tree without having to explicitly pass it everywhere.
+//This feature is called context. In some ways it’s like global variables, but it doesn’t suffer from the same problems (and maintainability nightmares) of global variables thanks to how the API works to make the relationships explicit.
+//Keep in mind that while context makes sharing state easy, it’s not the only solution to Prop Drilling pains and it’s not necessarily the best solution either. 
+//React’s composition model is powerful and can be used to avoid issues with prop drilling as well.
+//Read here for more: https://twitter.com/mjackson/status/1195495535483817984
+//Example
+//<FooDisplay /> could appear anywhere in the render tree, and it will have access to the value which is passed by the FooContext.Provider component.
+import * as React from 'react'
 
+//Need our contenxt component in order to initiailze context to a useContext hook and use it as a wrapper in which you pass your value/state to which will be assigned to the variable you assigned to useContext
+const FooContext = React.createContext()
+
+function FooDisplay() {
+  const foo = React.useContext(FooContext)//here you are assigning the value/state you pass the wrapper to a var in your component
+  return <div>Foo is: {foo}</div>
+}
+
+ReactDOM.render(
+  <FooContext.Provider value="I am foo">
+    <FooDisplay />
+  </FooContext.Provider>,
+  document.getElementById('root'),
+)
+// renders <div>Foo is: I am foo</div>
+
+//another example more context no pun
+
+import * as React from 'react'
+
+const CountContext = React.createContext()// define context sort of like a global state with convention MyVarContext or MyStateContext
+
+function CountProvider(props) {// create the Provider component with same convention MyVarProvider or MyStateProvider
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]// want the value to be whatever is shared among both components that need either or both the count and setCount
+  // could also do it like this:
+  // const value = React.useState(0)
+  return <CountContext.Provider value={value} {...props} />// return the component with MyVarContext.Provider or MyStateContext.Provider (use the context component you created above and pass any your value and props)
+  // also may provide all other props you want to define inline when using the <CountProvider example={0}  example2={'foo'} /> component
+}
+
+function CountDisplay() {
+  const [count] = React.useContext(CountContext)// here we have access to the context value passed into value which we destructure as we passed [count,setCount]
+  return <div>{`The current count is ${count}`}</div>
+}
+
+function Counter() {
+  const [, setCount] = React.useContext(CountContext)// here we leave the first destructure null but pluck off setCount as its the second argument passed to value [count, setCount] which we provided in the CountProvider component
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
+}
+
+function App() {
+  return (
+    <div>
+      <CountProvider>{/*Here we wrap our components using the value coming from CountProvider with the CountProvider component that uses the CountContext we created with CountContext.createContext()*/}
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
+  )
+}
+
+export default App
+
+//another version with custom hook and error handling
+//we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
+//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom hook (think of useCount as the value returned from provider)
+//if the component we are using this in is not within the CountProvider it won't work and will throw an error
+import * as React from 'react'
+
+//SHOULD BE IN OWN MODULE
+const CountContext = React.createContext()
+
+function CountProvider(props) {
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]
+  return <CountContext.Provider value={value} {...props} />
+}
+
+function useCount() {
+  const context = React.useContext(CountContext) //getting value from provider
+  if (!context) {
+    throw new Error('useCount must be used within a CountProvider')
+  }
+  return context //returning value from provider
+}
+//END SHOULD BE IN OWN MODULE
+
+function CountDisplay() {
+  const [count] = useCount()
+  return <div>{`The current count is ${count}`}</div>
+}
+
+function Counter() {
+  const [, setCount] = useCount()
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
+}
+
+function App() {
+  return (
+    <div>
+      <CountProvider>
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
+  )
+}
+
+export default App
+
+//another example - larger more realy world - cache
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonForm,
+  PokemonDataView,
+  PokemonInfoFallback,
+  PokemonErrorBoundary,
+} from '../pokemon'
+import {useAsync} from '../utils'
+
+// 🐨 Create a PokemonCacheContext
+const PokemonCacheContext = React.createContext()
+// 🐨 create a PokemonCacheProvider function
+function PokemonCacheProvider(props) {
+  function pokemonCacheReducer(state, action) {
+    switch (action.type) {
+      case 'ADD_POKEMON': {
+        return {...state, [action.pokemonName]: action.pokemonData}
+      }
+      default: {
+        throw new Error(`Unhandled action type: ${action.type}`)
+      }
+    }
+  }
+  const [cache, dispatch] = React.useReducer(pokemonCacheReducer, {})
+  const value = [cache, dispatch]
+  return <PokemonCacheContext value={value} {...props} />
+}
+
+function PokemonInfo({pokemonName}) {
+  const [cache, dispatch] = React.useContext(PokemonCacheContext)
+  const {data: pokemon, status, error, run, setData} = useAsync()
+  React.useEffect(() => {
+    if (!pokemonName) {
+      return
+    } else if (cache[pokemonName]) {
+      setData(cache[pokemonName])
+    } else {
+      run(
+        fetchPokemon(pokemonName).then(pokemonData => {
+          dispatch({type: 'ADD_POKEMON', pokemonName, pokemonData})
+          return pokemonData
+        }),
+      )
+    }
+  }, [cache, pokemonName, run, setData])
+
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'rejected') {
+    throw error
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemon} />
+  }
+}
+
+function PreviousPokemon({onSelect}) {
+  // 🐨 get the cache from useContext with PokemonCacheContext
+  const cache = React.useContext(PokemonCacheContext)
+  return (
+    <div>
+      Previous Pokemon
+      <ul style={{listStyle: 'none', paddingLeft: 0}}>
+        {Object.keys(cache).map(pokemonName => (
+          <li key={pokemonName} style={{margin: '4px auto'}}>
+            <button
+              style={{width: '100%'}}
+              onClick={() => onSelect(pokemonName)}
+            >
+              {pokemonName}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function PokemonSection({onSelect, pokemonName}) {
+  // 🐨 wrap this in the PokemonCacheProvider so the PreviousPokemon
+  // and PokemonInfo components have access to that context.
+  return (
+    <PokemonCacheProvider>
+      <div style={{display: 'flex'}}>
+        <PreviousPokemon onSelect={onSelect} />
+        <div className="pokemon-info" style={{marginLeft: 10}}>
+          <PokemonErrorBoundary
+            onReset={() => onSelect('')}
+            resetKeys={[pokemonName]}
+          >
+            <PokemonInfo pokemonName={pokemonName} />
+          </PokemonErrorBoundary>
+        </div>
+      </div>
+    </PokemonCacheProvider>
+  )
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState(null)
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  function handleSelect(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <PokemonSection onSelect={handleSelect} pokemonName={pokemonName} />
+    </div>
+  )
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useRef Hook - DOM Element Access*/
+///////////////////////////////////
+//For refs on the DOM we want to use the useRef variable inside a useEffect
+//Remember that when you do: <div>hi</div> that’s actually syntactic sugar for a React.createElement so you don’t actually have access to DOM nodes in your function component.
+//In fact, DOM nodes aren’t created at all until the ReactDOM.render method is called. 
+//Your function component is really just responsible for creating and returning React Elements and has nothing to do with the DOM in particular.
+//To get access to the DOM, you need to ask React to give you access to a particular DOM node when it renders your component. The way this happens is through a special prop called ref.
+//After the component has been rendered, it’s considered “mounted.” That’s when the React.useEffect callback is called and so by that point, the ref should have its current property set to the DOM node.
+//So often you’ll do direct DOM interactions/manipulations in the useEffect callback.
+//most of the time we don't want to hook into dom element by manipulating dom directly with document.getElementById or something
+//ref is an object that stays consistent between renders of your React component. It has a current property on it which can be updated to any value at any time. 
+//In the case of interacting with DOM nodes, you can pass a ref to a React element and React will set the current property to the DOM node that’s rendered.
+//we need to make sure we are using the ref.current.value (current is important)
+//useRef on every render will return the same object - whatever we store in it will be stored as the current properties values and can be modified without a component rerender
+function TextInputWithFocusButton() {
+  const inputEl = useRef(null);
+  const onButtonClick = () => {
+    // `current` points to the mounted text input element
+    inputEl.current.focus();
+    console.log(inputEl.current.value) // notice we don't need the target here (target would be the form)
+  };
+  return (
+    <>
+      <input ref={inputEl} type="text" />
+      <button onClick={onButtonClick}>Focus the input</button>
+    </>
+  );
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*useRef Hook - Mutable Objects*/
+//////////////////
+//another example demonstrating how we can change this object 'obj' value without a rerender or rerender without the value changing (it can be mutated but if you update obj.current it will not trigger a rerender)
+//can store a mutable value inside your function while also getting free memory clean up
+//e.g. cons obj = useRef({json: '<heavy>...'}) - this memory will be freed once the component is unmounted vs not being freed if it is in the global space
+function App() {
+  const obj = useRef(5) //{current: 5}
+  const [counter, setCounter] = useState(0)
+
+  useEffect(() => {
+    console.log('Effect ran!')
+  }, [obj])
+
+  useEffect(() => {
+    obj.current *= 5
+  }, [counter])
+
+  return (<div className="App">
+    <h1 onClick={() => setCounter(val => val + 1)}>Hello World {counter}</h1>
+  </div>)
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*HTTP Request - Maintaining State in an Object*/
+////////////////////////////////////////////////
+//When making HTTP Requests its best to use a 'status' to indicate where we are in deciding what to render
+//Here it is easier to maintain all state in an object instead of chaining updates to state
+import * as React from 'react'
+import {
+  fetchPokemon,
+  PokemonInfoFallback,
+  PokemonForm,
+  PokemonDataView,
+} from '../pokemon'
+
+function PokemonInfo({pokemonName}) {
+  const [state, setState] = React.useState({
+    status: 'idle',
+    pokemon: null,
+    error: null,
+  })
+  const {status, pokemon, error} = state
+
+  React.useEffect(() => {
+    if (!pokemonName) {
+      return
+    }
+    setState({status: 'pending'})
+    fetchPokemon(pokemonName).then(
+      pokemon => {
+        setState({status: 'resolved', pokemon})
+      },
+      error => {
+        setState({status: 'rejected', error})
+      },
+    )
+  }, [])
+
+  if (status === 'idle') {
+    return 'Submit a pokemon'
+  } else if (status === 'pending') {
+    return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'rejected') {
+    return (
+      <div>
+        There was an error:{' '}
+        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      </div>
+    )
+  } else if (status === 'resolved') {
+    return <PokemonDataView pokemon={pokemon} />
+  }
+
+  throw new Error('This should be impossible')
+}
+
+function App() {
+  const [pokemonName, setPokemonName] = React.useState('')
+
+  function handleSubmit(newPokemonName) {
+    setPokemonName(newPokemonName)
+  }
+
+  return (
+    <div className="pokemon-info-app">
+      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
+      <hr />
+      <div className="pokemon-info">
+        <PokemonInfo pokemonName={pokemonName} />
+      </div>
+    </div>
+  )
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Custom Hooks - useMyFunction*/
+///////////////////////////////
+//Good for making areusable functions or making hooks you are currently using more generic (e.g. grabbing state from local stoage and setting local storage based on state) 
+//Cutom Hooks need to start with 'use' without quotes e.g. useLocalStorageState
+//Custom Hooks are merely functions that use other hooks (prebuilt hooks or custom hooks)
+
+import * as React from 'react'
+
+function useLocalStorageState(key, defaultValue = '') {
+  const [state, setState] = React.useState(
+    () => window.localStorage.getItem(key) || defaultValue,
+  )
+
+  React.useEffect(() => {
+    window.localStorage.setItem(key, state)
+  }, [key, state])
+
+  return [state, setState] //notice we return the hook in the same way we expect to use our useState hook where we need this hook
+}
+
+function Greeting({initialName = ''}) {
+  const [name, setName] = useLocalStorageState('name', initialName)
+
+  function handleChange(event) {
+    setName(event.target.value)
+  }
+
+  return (
+    <div>
+      <form>
+        <label htmlFor="name">Name: </label>
+        <input value={name} onChange={handleChange} id="name" />
+      </form>
+      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+    </div>
+  )
+}
+
+function App() {
+  return <Greeting />
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Custom Hooks - useMyFunction - MORE GENERIC*/
+//////////////////////////////////////////////
+//Great for bringing huge and generic customization of hooks that already exist!
+import * as React from 'react'
+
+function useLocalStorageState(
+  key,
+  defaultValue = '',
+  // the = {} fixes the error we would get from destructuring when no argument was passed
+  // Check https://jacobparis.com/blog/destructure-arguments for a detailed explanation
+  {serialize = JSON.stringify, deserialize = JSON.parse} = {}, 
+  //JSON.stringify() can be used to stringify anything like an object or value
+  //JSON.parse does the opposite - pulls the string without having quotes
+) {
+  const [state, setState] = React.useState(() => {
+    const valueInLocalStorage = window.localStorage.getItem(key)
+    if (valueInLocalStorage) {
+      // the try/catch is here in case the localStorage value was set before
+      // we had the serialization in place (like we do in previous extra credits)
+      try {
+        return deserialize(valueInLocalStorage)
+      } catch (error) {
+        window.localStorage.removeItem(key)
+      }
+    }
+    return typeof defaultValue === 'function' ? defaultValue() : defaultValue //checking if value is a function (computationally expensive) then we want to call it aka lazy load and if not we want to leave it as a value
+  })
+
+  // Here we are using the useRef to store the previous key without having to rerender if it changes
+  const prevKeyRef = React.useRef(key)
+
+  // Check the example at src/examples/local-state-key-change.js to visualize a key change
+  // here we compare the prev key to the new key - if they don't match we remove the old key/item from localstorage and store it with our new key
+  React.useEffect(() => {
+    const prevKey = prevKeyRef.current
+    if (prevKey !== key) {
+      window.localStorage.removeItem(prevKey)
+    }
+    prevKeyRef.current = key
+    window.localStorage.setItem(key, serialize(state))
+  }, [key, state, serialize])
+
+  return [state, setState]
+}
+
+function Greeting({initialName = ''}) {
+  const [name, setName] = useLocalStorageState('name', initialName)
+
+  function handleChange(event) {
+    setName(event.target.value)
+  }
+
+  return (
+    <div>
+      <form>
+        <label htmlFor="name">Name: </label>
+        <input value={name} onChange={handleChange} id="name" />
+      </form>
+      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+    </div>
+  )
+}
+
+function App() {
+  return <Greeting />
+}
+
+export default App
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Error Boundaries*/
+///////////////////
+//Use the react-error-boundary library for error boundaries
+//Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed.
+//Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Authentication*/
+//////////////////
+//Inside app.js
+//Create get user function that sets user to null if there is no token provided, otherwise set user data to data state
+//If there is a user we pass it as the second argument to our client function
+//Getting our status functions from custom hook useAsync()
+//We load either the Authenticated or Unauthenticated App Component based on whether or not we have user information (if the user is logged in)
+//We use the Authorization library to handle the login and registration for the user passing in the form login and password information
+//We show a full page loading spinner component whenever the status is loading
+//We show an error component whenever we get an error
+/** @jsx jsx */
+import { jsx } from '@emotion/core';
+import * as React from 'react';
+import * as auth from 'auth-provider';
+import { FullPageSpinner } from './components/lib';
+import * as colors from './styles/colors';
+import { client } from './utils/api-client';
+import { useAsync } from './utils/hooks';
+import { AuthenticatedApp } from './authenticated-app';
+import { UnauthenticatedApp } from './unauthenticated-app';
+
+async function getUser() {
+  let user = null;
+
+  const token = await auth.getToken();
+  if (token) {
+    const data = await client('me', { token });
+    user = data.user;
+  }
+
+  return user;
+}
+
+function App() {
+  const {
+    data: user,
+    error,
+    isLoading,
+    isIdle,
+    isError,
+    isSuccess,
+    run,
+    setData,
+  } = useAsync();
+
+  React.useEffect(() => {
+    run(getUser());
+  }, [run]);
+
+  const login = (form) => auth.login(form).then((user) => setData(user));
+  const register = (form) => auth.register(form).then((user) => setData(user));
+  const logout = () => {
+    auth.logout();
+    setData(null);
+  };
+
+  if (isLoading || isIdle) {
+    return <FullPageSpinner />;
+  }
+
+  if (isError) {
+    return (
+      <div
+        css={{
+          color: colors.danger,
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <p>Uh oh... There's a problem. Try refreshing the app.</p>
+        <pre>{error.message}</pre>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
+    return user ? (
+      <AuthenticatedApp user={user} logout={logout} />
+    ) : (
+      <UnauthenticatedApp login={login} register={register} />
+    );
+  }
+}
+
+export { App };
+//Inside utils.js and utilizing the client function which makes the http request
+//We are now accepting data, token, customerHeaders, and customerConfig passed into client from app.js as an object {token} is what were using for now
+//but if non are provided we default to an empty object
+//We are destructuring these variables
+//in params we are assigning the headers param passed in to a new variable named customerHeaders (like an alias in the params)
+//in params we are assigning  the 'rest' of the arguments to the customerConfig variable by using the rest operator
+//We initialie our config object we will pass to our fetch request
+//if data exists will set method to 'POST' if none it will be 'GET'
+//if data we will set a body to 'JSON.stringify(data)' if none we will set body to undefined
+//if token we will set Authorization to `Bearer ${token}` if none it will be undefined
+//if data we will make then Content-Type 'application/json' if none it will be undefined
+//we spread any other customerHeaders inside the headers param in the config object that were passed into the object that was passed to client
+//we spread any other customerConfig options that were passed into the object that was passed to client
+import * as auth from 'auth-provider';
+import { code } from 'esutils';
+import { builtinModules } from 'module';
+import { string } from 'prop-types'
+const apiURL = process.env.REACT_APP_API_URL;
+
+function client(
+  endpoint,
+  { data, token, headers: customHeaders, ...customConfig } = {}
+) {
+  const config = {
+    method: data ? 'POST' : 'GET',
+    body: data ? JSON.stringify(data) : undefined,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : undefined,
+      'Content-Type': data ? 'application/json' : undefined,
+      ...customHeaders,
+    },
+    ...customConfig,
+  };
+
+  //We pass our confid options as an extra argument into the fetch api
+  //If we get a 401 code (user trying to access information they shouldn't) then we log the user out and refresh the page
+  //window.location.assign(window.location); will refresh the page and erase any headers we had in the browser
+  //return Promise.reject({ message: 'Please re-authenticate.' }); will return a rejection from the fetch request and supply the message 'Please re-authenticate.'
+  return window
+    .fetch(`${apiURL}/${endpoint}`, config)
+    .then(async (response) => {
+      if (response.status === 401) {
+        await auth.logout();
+        // refresh the page for them
+        window.location.assign(window.location);
+        return Promise.reject({ message: 'Please re-authenticate.' });
+      }
+      const data = await response.json();
+      if (response.ok) {
+        return data;
+      } else {
+        return Promise.reject(data);
+      }
+    });
+}
+
+export { client };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*PATTERNS*/
 ///////////

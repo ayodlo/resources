@@ -91,3 +91,6 @@ switch (expr) {
 /*JSON.stringify() and JSON.parse*/
 //JSON.stringify() can be used to stringify anything like an object or value
 //JSON.parse does the opposite - pulls the string without having quotes
+
+/*FETCH*/
+// https://stackoverflow.com/questions/40408219/how-to-get-readable-error-response-from-javascript-fetch-api

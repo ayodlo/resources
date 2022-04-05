@@ -172,13 +172,53 @@ const Spinner = styled(FaSpinner)({
 });
 Spinner.defaultProps = { 'aria=label': 'loading' };
 /*Grid*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Impoertant terminology
+//Important terminology
 //Grid Container - The element on which grid is applied (i.e. display: grid)
 //Grid Item - Direct descendants of the grid container
 //Grid Line - The dividing lines that make up the structure of the grid - they can be vertical or horizontal
-//Grid Cell - The space between two adjacent tow and two adjacent column grid lines - a single unit of the grid
+//Grid Cell - The space between two adjacent two and two adjacent column grid lines - a single unit of the grid
 //Grid Track - The space between two adjacent grid lines - think of them as the columns or rows of the grid
 //Grid Area - The total space surrounded by the four grid lines - may be composed of any number of grid cells
+
+// grid can be nested in the same way as flexbox
+// grid with defining by percentages
+.wrapper {
+  display: grid;// parent wrapper you will use display: grid just like with flexbox
+  grid-template-columns: 40% 30% 40%;// grid-template-columns defines how you want the columns displayed and will continue to follow the pattern
+  grid-column-gap: 1em;// grid column gap will put a gap between columns
+  grid-row-gap: 1em;// grid column gap will put a gap between rows
+  grid-gap: 1em; // will account for both grid row and grid column
+}
+
+// grid with defining by fractions (fr) & repeat
+.wrapper {
+  display: grid;// parent wrapper you will use display: grid just like with flexbox
+  grid-template-columns: 1fr 1fr 1fr; // will divide evenly based on the fraction
+  grid-template-columns: repeat(3, 1fr) // same as above except shorthand
+  grid-template-columns: repeat(3, 1fr 2fr ) // can repeat any pattern (1fr 2fr will be repeated 3 times per row)
+  grid-gap: 1em; // will account for both grid row and grid column
+  grid-auto-rows: 100px; //fixed height
+  grid-auto-tows: minmax(100px, auto); //will make height 100px by default but if it goes beyond it will follow it - the entire row will follow the height
+}
+
+// justify-items will align the items on X-Axis to the start, center, end of their column and will remove the width 100% which by default is stretch;
+// align-items will align the items on Y-Axis to the start, center, end of their column and will remove the width 100% which by default is stretch;
+// align-self will align single item on Y-Axis to the start, center, end of their column and will remove the width 100% which by default is stretch;
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-auto-rows: minmax(100px, auto);
+  grid-gap: 1em;
+  justify-items: start;
+  align-items: stretch;
+}
+
+// grid-column: startLine/endLine will stretch the column from beginning of column line to beginning of provided column line while moving the columns after it over
+// grid-row: startLine/endLine will stretch the column from beginning of column line to beginning of provided column line while moving the columns after it over
+// note rows and columns can overlap if explicitly defined
+.box1 {
+  grid-column: 1/3;
+}
 
 /*React Styling Guide*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Two ways to style React components
@@ -204,13 +244,15 @@ function Box({className = '', style, size, ...rest}) {
 <Box size="small" style={{backgroundColor: 'lightblue'}} id="unique-id">
   small lightblue box
 </Box>
-
-/*Styled Components*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Styled Components*/
+////////////////////////////
 //install with npm install --save styled-components
 //styled-components utilises tagged template literals to style your components.
 /////////////Creating basic styled components////////////
 // Create a Title component that'll render an <h1> tag with some styles
 import styled from 'styled-components';
+import { start } from 'repl';
 const Title = styled.h1`
   font-size: 1.5em;
   text-align: center;
@@ -429,3 +471,6 @@ const StyledWrapper = styled.div`
 const Wrapper = ({ message }) => {
   return <StyledWrapper>{message}</StyledWrapper>
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Styled Components Best Practices*/
+////////////////////////////////////

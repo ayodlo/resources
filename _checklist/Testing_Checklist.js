@@ -476,8 +476,246 @@ it('task should have complete class when clicked', () => {
     expect(divElement).toHaveClass("todo-item-active")
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*SIMPLE MOCKS*/
+////////////////
+//thumbwar.js Module we want to 'Mock'
+function thumbWar(player1, player2) {
+  const numberToWin = 2
+  let player1Wins = 0
+  let player2Wins = 0
+  while (player1Wins < numberToWin && player2Wins < numberToWin) {
+    const winner = utils.getWinner(player1, player2) // The getWinner property
+    if (winner === player1) {
+      player1Wins++
+    } else if (winner === player2) {
+      player2Wins ++
+    }
+  }
+  return player1Wins > player2Wins ? player1 : player2
+}
+
+//Monkey patching inside mock.js
+//our goal is to mock out the getWinner function, so we don't have to run it in our test.
+//We have the utils module right here, and we can go ahead and mock out getWinner by simply assigning it to a new function that takes a player1 and a player2, and is always going to return player1.
+//If we save that, then every single time we run our test, it's going to pass.
+//An essential part of mocking is that you clean up after yourself so that you don't impact other tests that may not want to mock the thing that you want, or may want to mock it in a different way.
+//At the bottom of our test, we need to reassign it to the original value of getWinner. 
+//We'll assign it to originalGetWinner, and then we'll declare that up here as a variable with utils.getWinner
+const assert  = require('assert')
+const thumbWar = require('../thumb-war')
+const utils = require('../utils')
+
+const originalGetWinner = utils.getWinner
+utils.getWinner = (p1, p2) => p1
+
+const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+assert.strictEqual(winner, 'Kent C. Dodds')
+
+utils.getWinner = originalGetWinner
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*MOCKING WITH JEST.FN()*/
+/////////////////////////
+//Jest has built into it a function called jest.fn, which is short for function.
+//You can provide it an implementation, this is called a mock function, and it keeps track of what arguments get called with it. Now, we can expect(utils.getWinner).toHaveBeenCalledTimes(2). The test is still passing.
+//Next, let's add expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler').
+//Because we're calling it two times, we also may want to verify that it's being called with the right things at the right time.
+//We can also say expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler').
+test('returns winner', () => {
+  const originalGetWinner = utils.getWinner
+  utils.getWinner = jest.fn((p1, p2) => p1)
+
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')// notice here we are testing thumbWar not getWinner!
+  expect(winner).toBe('Kent C. Dodds')
+  expect(utils.getWinner).toHaveBeenCalledTimes(2)
+  expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler')
+  expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler')//to have been called takes first argument as the nth call?
+  expect(utils.getWinner).toHaveBeenNthCalledWith(2, 'Kent C. Dodds', 'Ken Wheeler')
+})
+
+// cleanup
+utils.getWinner = originalGetWinner
+
+//*NOTE//
+//when utilizing the jest.fn call we are provided a mock property. The mock is an object that has a calls property, which is an array that holds all of the arguments that this function is called with.
+//output via console.log(utils.getWinner)
+{ calls:
+  [ [ 'Kent C. Dodds', 'Ken Wheeler' ],
+    [ 'Kent C. Dodds', 'Ken Wheeler' ]
+  ],
+  ...
+}
+//We could actually take that, and do expect(utils.getWinner.mock.calls).toEqual() what we copied.
+expect(utils.getWinner.mock.calls).toEqual([
+  [ 'Kent C. Dodds', 'Ken Wheeler' ],
+  [ 'Kent C. Dodds', 'Ken Wheeler' ]
+])
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*MOCKING WITH jest.spyOn()*/
+////////////////////////////
+//Keeping track of the originalGetWinner and restoring it at the end of our test is annoying. 
+//Jest exposes another utility that we can use to simplify this. We can run jest.spyOn and pass utils as the object and 'getWinner' as the method.
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  const originalGetWinner = utils.getWinner
+  utils.getWinner = jest.fn((p1, p2) => p2)
+//With this, we no longer need to keep track of the originalGetWinner. Instead, we can say, utils.getWinner.mockRestore() The .spyOn method will replace the getWinner on utils with an empty mock function
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  utils.getWinner = jest.fn((p1, p2) => p2)
+
+  // cleanup
+  utils.getWinner.mockRestore()
+//Mock functions have an additional method on them called mockImplementation.
+//Here, we can pass the mockImplementation we want to be applied. With this, our tests are still passing. We can use all the regular assertions from Jest that we like.
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  utils.getWinner.mockImplementation((p1, p2) => p2)
+
+//What we're doing here with the spyOn is still a form of monkey patching. It works because the thumb-war module is using utils.getWinner, but that only works because we're using common JS.
+//In an ES module situation, monkey patching doesn't work. We need to take things a little bit further so that we can mock the entire module, and Jest allows you to do this with the jest.mock API.
+//The first argument to jest.mock is the path to the module that you're mocking, and that's relative to our jest.mock is being called.
+//For us, that is this '../utils'. The second argument is a module factory function that will return the mocked version of the module. 
+//Here, we can return an object that has getWinner and that would be a jest.fn() with our mock implementation.
+//With that, we can remove both of these. For the cleanup, we want to run mockReset().
+//That will reset our mock function to the initial state clearing out the calls. With that our tests are passing.
+jest.mock('../utils', () => {
+  return {
+    getWinner: jest.fn((p1, p2) => p1)
+  }
+})
+
+test('returns winner', () => {
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+  expect(winner).toBe('Kent C. Dodds')
+  expect(utilsMock.getWinner.mock.calls).toEqual([
+    ['Kent C. Dodds', 'Ken Wheeler'],
+    ['Kent C. Dodds', 'Ken Wheeler']
+  ])
+
+  // cleanup
+  utils.getWinner.mockReset()
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*EXPORTING MOCKS*/
+//////////////////
+//Jest allows you to externalize your mock by using a __mocks__ directory.
+//What you do is create a directory with __mocks__ and then a file that has the name of the module that you want to mock. In our case, that's utils.js. 
+//Then in that utils.js, we place the mock that we want to use. We'll take this, and we'll module.exports the inline mock that we had before.
+//mocks/utils.js
+//this is the mock factory function that is literally providing a mock of the module then we reset it at the end
+module.exports = {
+  getWinner: jest.fn((p1, p2) => p1)
+}
+//Then we can go back to our test file, and we can remove the second argument from our jest.mock. Jest will automatically pick up the mock file that we have created. Our test still works!
+jest.mock('../utils')
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*END TO END TESTS - Common Testing Functions and Practices*/
+/////////////////////////////////////////////////////////////
+//install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
+//everyting in cypress will always use find vs get which we are used to in Jest
+//setup cypress -- npm install -save--dev @testing-library/cypress OR yarn add -D cypress @testing-library/cypress (-D makes it a deve dependency)
+//npm run cypress open OR yarn run crypress open
+//remove default tests by going to cypress folder and in integration remove those two folders
+//want to add the react-testing-library cypress commands -- go to support folder --> command.js and add the following:
+import "@testing-library/cypress/add-commands"
+//can start writing tests by going to cypress folder and in integration directory create a file (e.g. payment_spec.js)
+describe('payment', () => {
+  it('user can make payment', () => {
+    //go through a use case yourself to see what you would do then write down the steps you want to emulate
+    //login
+    //check account balance
+    //click on pay button
+    //search for user
+    //add amount and note and click pay
+    //return to transactions
+    //go to personal payments tab
+    //click on payment
+    //verify if payment was made
+    //verify if payment amount was deducted
+  })
+})
+//inside cypress window you can go to the payment_spec.js and click Run 1 integration spec (we are using the Electron environment but you can test within other environments)
+const { v4: uuidv4 } = require('uuid'); //this import allows use to create unique identifiers
+
+describe('payment', () => {
+    it('user can make payment', () => {
+        //  login
+        cy.visit('/'); //this will ensure user visits the root of our app
+        cy.findByRole('textbox', { name: /username/i }).type('johndoe');
+        cy.findByLabelText(/password/i).type('s3cret');
+        cy.findByRole('checkbox', { name: /remember me/i }).check();
+        cy.findByRole('button', { name: /sign in/i }).click();
+
+        //the account balance is dynamic and there are no real details in cypress
+        //if you go to Open Selector Playground which looks like a target in the cypress browser, click on the amount ot the dynamic element and cypress will give you a data test id like this [data-test-sidenav-user-balance]
+        //we want to grab and use this on our cy.get functions cy.get('[data-test=sidenav-user-balance]')
+        //once we grab it we can search our directory for it
+        //use test-id as a last resport the more your tests resembles the way a user will use it the better
+        
+        // check account balance
+        let oldBalance; //later we will use the current balance and compare these
+        cy.get('[data-test=sidenav-user-balance]').then($balance => oldBalance = $balance.text()).then($balance => console.log($balance)); //set old balance to the current balance - we don't need the console.log but can check the balance to make sure it is working correctly
+
+        // click on new button - opens a new page where we can select a user name to send a new payment
+        cy.findByRole('button', { name: /new/i }).click();
+
+        // search for user and then click the user
+        cy.findByRole('textbox').type('devon becker');
+        cy.findByText(/devon becker/i).click();
+
+        // add amount and note and click pay
+        const paymentAmount = "5.00";
+        cy.findByPlaceholderText(/amount/i).type(paymentAmount);
+        const note = uuidv4();
+        cy.findByPlaceholderText(/add a note/i).type(note); //this uuidv4() function allows use to create unique identifiers - must import the library see top of component
+        cy.findByRole('button', { name: /pay/i }).click();
+
+        // return to transactions
+        cy.findByRole('button', { name: /return to transactions/i }).click();
+
+        // go to personal payments
+        cy.findByRole('tab', { name: /mine/i }).click();
+
+        //potential errors if an element covers another element you will get an error
+        //you can use scrollIntoView() to resolve this issue
+        //if error occurs try to see if element is available in your REAL browser and if it is then force cypress to move forward with clicking of the element that is covered via {force: true} configuration within click() function
+
+        // click on payment
+        cy.findByText(note).click({ force: true }); //want to click on the unique text we created as it should be there now
+
+        // verify if payment was made
+        cy.findByText(`-$${paymentAmount}`).should('be.visible'); //check if '-$50.00' is visible on the screen - ASSERTIONS SUCCESS!
+        cy.findByText(note).should('be.visible'); //chec if note is on the screen - ASSERTIONS SUCCESS!
+
+        // verify if payment amount was deducted
+        cy.get('[data-test=sidenav-user-balance]').then($balance => {
+            const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, "")); //replace the '$' sign and ',' globally with empty string
+            const convertedNewBalance = parseFloat($balance.text().replace(/\$|,/g, "")); //need to convert new balance to text or it wont work
+            expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount)); //create our own assertion - lookup 'to' keyword and 'equal' keyword
+        });
+    });
+});
+
+//REVIEW
+//is app working as expected?
+//did we test high value features?
+//can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
+//ensure test are acting as a safegaurd against unwanted behavior in our tests
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*ASYNC TESTS && MOCKS && BEOFRE AND AFTER EACH HOOKS*/
-/////////////////////////////////
+//////////////////////////////////////////////////////
 //Why use mocks?
 //requests cost money
 //requests are slow
@@ -632,98 +870,7 @@ test('if an amount and note is entered, the pay button is enabled', () => {
   userEvent.type(screen.getByPlaceholderText(/note/i), "This is a note");
   expect(await screen.findByRole('button', {name: /pay/i}).toBeEnabled()); //will look for a button with the name with pay that is enabled (case insensitive search)
 })
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*END TO END TESTS - Common Testing Functions and Practices*/
-//install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
-//everyting in cypress will always use find vs get which we are used to in Jest
-//setup cypress -- npm install -save--dev @testing-library/cypress OR yarn add -D cypress @testing-library/cypress (-D makes it a deve dependency)
-//npm run cypress open OR yarn run crypress open
-//remove default tests by going to cypress folder and in integration remove those two folders
-//want to add the react-testing-library cypress commands -- go to support folder --> command.js and add the following:
-import "@testing-library/cypress/add-commands"
-//can start writing tests by going to cypress folder and in integration directory create a file (e.g. payment_spec.js)
-describe('payment', () => {
-  it('user can make payment', () => {
-    //go through a use case yourself to see what you would do then write down the steps you want to emulate
-    //login
-    //check account balance
-    //click on pay button
-    //search for user
-    //add amount and note and click pay
-    //return to transactions
-    //go to personal payments tab
-    //click on payment
-    //verify if payment was made
-    //verify if payment amount was deducted
-  })
-})
-//inside cypress window you can go to the payment_spec.js and click Run 1 integration spec (we are using the Electron environment but you can test within other environments)
-const { v4: uuidv4 } = require('uuid'); //this import allows use to create unique identifiers
 
-describe('payment', () => {
-    it('user can make payment', () => {
-        //  login
-        cy.visit('/'); //this will ensure user visits the root of our app
-        cy.findByRole('textbox', { name: /username/i }).type('johndoe');
-        cy.findByLabelText(/password/i).type('s3cret');
-        cy.findByRole('checkbox', { name: /remember me/i }).check();
-        cy.findByRole('button', { name: /sign in/i }).click();
-
-        //the account balance is dynamic and there are no real details in cypress
-        //if you go to Open Selector Playground which looks like a target in the cypress browser, click on the amount ot the dynamic element and cypress will give you a data test id like this [data-test-sidenav-user-balance]
-        //we want to grab and use this on our cy.get functions cy.get('[data-test=sidenav-user-balance]')
-        //once we grab it we can search our directory for it
-        //use test-id as a last resport the more your tests resembles the way a user will use it the better
-        
-        // check account balance
-        let oldBalance; //later we will use the current balance and compare these
-        cy.get('[data-test=sidenav-user-balance]').then($balance => oldBalance = $balance.text()).then($balance => console.log($balance)); //set old balance to the current balance - we don't need the console.log but can check the balance to make sure it is working correctly
-
-        // click on new button - opens a new page where we can select a user name to send a new payment
-        cy.findByRole('button', { name: /new/i }).click();
-
-        // search for user and then click the user
-        cy.findByRole('textbox').type('devon becker');
-        cy.findByText(/devon becker/i).click();
-
-        // add amount and note and click pay
-        const paymentAmount = "5.00";
-        cy.findByPlaceholderText(/amount/i).type(paymentAmount);
-        const note = uuidv4();
-        cy.findByPlaceholderText(/add a note/i).type(note); //this uuidv4() function allows use to create unique identifiers - must import the library see top of component
-        cy.findByRole('button', { name: /pay/i }).click();
-
-        // return to transactions
-        cy.findByRole('button', { name: /return to transactions/i }).click();
-
-        // go to personal payments
-        cy.findByRole('tab', { name: /mine/i }).click();
-
-        //potential errors if an element covers another element you will get an error
-        //you can use scrollIntoView() to resolve this issue
-        //if error occurs try to see if element is available in your REAL browser and if it is then force cypress to move forward with clicking of the element that is covered via {force: true} configuration within click() function
-
-        // click on payment
-        cy.findByText(note).click({ force: true }); //want to click on the unique text we created as it should be there now
-
-        // verify if payment was made
-        cy.findByText(`-$${paymentAmount}`).should('be.visible'); //check if '-$50.00' is visible on the screen - ASSERTIONS SUCCESS!
-        cy.findByText(note).should('be.visible'); //chec if note is on the screen - ASSERTIONS SUCCESS!
-
-        // verify if payment amount was deducted
-        cy.get('[data-test=sidenav-user-balance]').then($balance => {
-            const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, "")); //replace the '$' sign and ',' globally with empty string
-            const convertedNewBalance = parseFloat($balance.text().replace(/\$|,/g, "")); //need to convert new balance to text or it wont work
-            expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount)); //create our own assertion - lookup 'to' keyword and 'equal' keyword
-        });
-    });
-});
-
-//REVIEW
-//is app working as expected?
-//did we test high value features?
-//can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
-//ensure test are acting as a safegaurd against unwanted behavior in our tests
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Enzyme setupTest.js Configuration
 //Import configure and adapter into setupTests.js

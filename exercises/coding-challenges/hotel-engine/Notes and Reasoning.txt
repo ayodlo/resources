@@ -1,0 +1,13 @@
+Hey Hotel-Engine,
+
+I wanted to give a brief reasoning on why the UI/UX was designed the way it was.
+
+1) I used a button to update the list because GitHub's API only allows 10 unauthorized request per minute. Originally I had the list updating on the input changes, but that was causing too many request per minute. With more time I could have spun up a more elegant design with something like a delay before making updates, but for simplicity and time the button seemed like a better solution.
+
+2) The language filter (the 2nd input) is a plain input. I think a drop down would be a better solution, however, I couldn't find an exaustive list of languages on GitHub and didn't want to spin a lot of time creating an array that holds an exaustive list. If this were a production level application I would have taken the time to create a drop down as that would prevent errors from typos.
+
+3) I added an error page for paths that are undefined and used window.localstorage for a better user experience when going back and forth between details and the search.
+
+4) I did not include any external css sheets. Usually each component would have an associated style sheet 'MyComponent.css' in the same folder, but for time's sake I used a bootstrap CDN and bootstrap for styling.
+
+5) If I were to add more to this application I would ask around for advice on UI/UX Design, add some animations and add tests.
