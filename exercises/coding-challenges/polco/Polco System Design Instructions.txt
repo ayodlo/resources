@@ -1,0 +1,14 @@
+Design an application that addresses the following stories:
+	As a user, I want to be able to view the weekly billboard top 100 songs, including artist, album, and genre.
+	As a user, I want to be able to favorite billboard top 100 songs and view a list of all my favorite songs
+
+Your technical design should discuss the following points:
+	Technical Stack
+	Database model
+	Methodology for accessing data
+	Front-end architecture
+	Testing strategy
+
+Document any assumptions you had to make in the design process to help us better understand your solution.  Spend no more than 6 hours total putting together your submission.
+
+Please reach out if you have any questions. The goal is for you to showcase your skills in system design. Once we have received your submission, we will take a look at it, and will schedule a follow-up session with our engineers if it meets our expectations.
