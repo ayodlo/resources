@@ -146,6 +146,513 @@ describe('Counter Testing', () => { //describe will combine related tests into o
   });
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*REACT TESTING KENT C DODDS*/
+/////////////////////////////
+/*Guidelines*/
+// You should try to test only what your user would see in a real browser, and not your component internal logic. This is what react-testing-library promotes : writing tests that give confidence because they see/do what a real user would.
+// https://testing-library.com/docs/guiding-principles
+// Following these guidelines, you should try to build a test which triggers user interactions on visible elements (rendered by your component), and which would involve the execution of simpleMethod.
+// This is the whole point of react-testing-library queries : getByText, getByPlaceholder, getByRole : things that a real user would see, hiding internal logic. But I guess you could have this approach with Enzyme (I never used Enzyme).
+// Writing tests with this approach leads to less tests, but stronger ones, which IMHO is a good thing. It is quite different from classical unit tests (say in a Java context for example) where you tests functions, inputs, outputs...
+// In fact your React component is a function, its inputs are user interactions, its output is a DOM.
+
+/*From Testing-Library Documentation*/
+// We try to only expose methods and utilities that encourage you to write tests that closely resemble how your web pages are used.
+// Utilities are included in this project based on the following guiding principles:
+// If it relates to rendering components, then it should deal with DOM nodes rather than component instances, and it should not encourage dealing with component instances.
+// It should be generally useful for testing the application components in the way the user would use it. We are making some trade-offs here because we're using a computer and often a simulated browser environment, but in general, utilities should encourage tests that use the components the way they're intended to be used.
+// Utility implementations and APIs should be simple and flexible.
+// At the end of the day, what we want is for this library to be pretty light-weight, simple, and understandable.
+
+/*Attribute types*/
+// We will be using a module out there in the testing library family of tools called jest-dom. This allows a bunch of custom Jest matchers to test the state of the DOM.
+// import {toHaveAttribute} from '@testing-library/jest-dom'
+// list of matchers: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom/extend-expect'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import {FavoriteNumber} from '../favorite-number'
+
+test('renders a number input with a label "Favorite Number"', () => {
+  const div = document.createElement('div')
+  ReactDOM.render(<FavoriteNumber />, div)
+  expect(div.querySelector('input')).toHaveAttribute('type', 'number')
+  expect(div.querySelector('label')).toHaveTextContent('Favorite Number'))
+})
+
+/*Ensuring Label & Inputs Match + geyByLabelText & getQueriesForElement*/
+// import {queries} from '@testing-library/dom
+// using queries methods will ensure label and id are matching or it will throw an error
+// we use regex with the -i flag here because the user doesn't care what the case is here
+// Rather than having to provide the div which can feel a little bit unnecessary as you add a whole bunch of queries in your test, we're going to do this, getByLabelText = getQueriesForElement(div) after importing getQueriesForElement 
+
+import {queries, getQueriesForElement, getByRole, getByLabelText, getByText, getByDisplayValue, getByAltText, getByTitle, getByTestId} from '@testing-library/dom'
+test('renders a number input with a label "Favorite Number"', () => {
+  const div = document.createElement('div')
+  ReactDOM.render(<FavoriteNumber />, div)
+  const {getByLabelText} = getQueriesForElement(div)
+  const input = getByLabelText(/favorite number/i)
+  expect(input).toHaveAttribute('type', 'number')
+})
+
+/*Render Method - don't recreate the wheel*/
+// pull in render from @testing-library/react, which I've already installed in my project.
+// Now, we have a react specific implementation of the testing library family of tools where we can get all of the queries that we need to query around the DOM that is rendered from this component.
+// queries are the methods that Testing Library gives you to find elements on the page
+// the difference between them is whether the query will throw an error if no element is found or if it will return a Promise and retry
+// types of queries: https://testing-library.com/docs/queries/about/#types-of-queries
+import React from 'react'
+import {render} from '@testing-library/react'
+import {FavoriteNumber} from '../favorite-number'
+
+test('renders a number input with a label "Favorite Number"', () => {
+  const {getByLabelText} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  expect(input).toHaveAttribute('type', 'number')
+})
+
+/*Types of Queries*/
+// Single Elements
+// getBy...: Returns the matching node for a query, and throw a descriptive error if no elements match or if more than one match is found (use getAllBy instead if more than one element is expected).
+// queryBy...: Returns the matching node for a query, and return null if no elements match. This is useful for asserting an element that is not present. Throws an error if more than one match is found (use queryAllBy instead if this is OK).
+// findBy...: Returns a Promise which resolves when an element is found which matches the given query. The promise is rejected if no element is found or if more than one element is found after a default timeout of 1000ms. If you need to find more than one element, use findAllBy.
+// Multiple Elements
+// getAllBy...: Returns an array of all matching nodes for a query, and throws an error if no elements match.
+// queryAllBy...: Returns an array of all matching nodes for a query, and return an empty array ([]) if no elements match.
+// findAllBy...: Returns a promise which resolves to an array of elements when any elements are found which match the given query. The promise is rejected if no elements are found after a default timeout of 1000ms.
+// findBy methods are a combination of getBy* queries and waitFor. They accept the waitFor options as the last argument (i.e. await screen.findByText('text', queryOptions, waitForOptions))
+
+/*Matchers*/
+getByRole - https://testing-library.com/docs/queries/byrole
+getByLabelText - https://testing-library.com/docs/queries/bylabeltext
+getByPlaceholderText - https://testing-library.com/docs/queries/byplaceholdertext
+getByText - https://testing-library.com/docs/queries/bytext
+getByDisplayValue - https://testing-library.com/docs/queries/byalttext
+getByAltText - https://testing-library.com/docs/queries/byalttext
+getByTitle - https://testing-library.com/docs/queries/bytitle
+getByTestId - https://testing-library.com/docs/queries/bytestid
+
+/*Event Handlers & fireEvent*/
+// use the fireEvent from testing-library dom and use the change method
+// it will take the input which is the target and apply the properties that we provide
+// we then use the getbyRole to find the div element and expect it to say the number is invalid
+import {render, fireEvent} from '@testing-library/react'
+
+test('entering an invalid value shows an error message', () => {
+  const {getByLabelText} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  fireEvent.change(input, {target: {value: '10'}})
+  expect(getByRole('alert')).toHaveTextContent(/the number is invalid/i)
+})
+
+/*Improve Test Confidence with User Event Module*/
+// Above we're only firing a change event. Our test is not exactly representing what the user is going to be experiencing when they're interacting with our component. Most of the time, this isn't all that problematic. Using fireEvent the way we are, it works just fine, but sometimes it can be a problem.
+// If you want to really resemble the way that your software is being used, then I recommend that you give this module a look. We're going to import user from '@testing-library/user-event'. user has a couple methods on it that we can call.
+// The user event module in the testing library family uses fireEvent to fire a whole bunch of events that will typically happen when a user types into an input, like the keydown, the keyup, as well as the change event.
+import user from '@testing-library/user-event'
+
+test('entering an invalid value shows an error message', () => {
+  const {getByLabelText, getByRole} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  user.type(input, '10')
+  // fireEvent.change(input, {target: {value: '10'}})
+  expect(getByRole('alert')).toHaveTextContent(/the number is invalid/i)
+})
+
+/*Test Prop Updates & rerender*/
+// Pull in rerender from a render call up here and we'll rerender FavoriteNumber with a max of 10. 
+// Let's go ahead and grab debug from our render call and I'll add a debug before and after that rerender.
+// If you need to re-render that same component with new props, you simply use the re-render method that you get back from render.
+// Re-render will take the UI that you provide to it and render that UI through the exact same container that it's rendering your original UI to, allowing you to test situations when props are updated.
+test('entering an invalid value shows an error message', () => {
+  const {getByLabelText, getByRole, rerender, debug} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  user.type(input, '10')
+  expect(getByRole('alert')).toHaveTextContent(/the number is invalid/i)
+  debug()
+  rerender(<FavoriteNumber max={10} />)
+  debug()
+})
+
+/*Assert Something is NOT Rendered*/
+// getByRole, any get prefixed query getByLabelText, getByRole, getByAll the text, any of this are going to through an error if it can't find the element that it's supposed to be matching.
+// any query that starts with the text query is going to return null instead of throwing an error.
+// if you want to verify that an element is not being rendered, then you're going to use a query that is prefixed with 'query' rather than one that is prefixed with 'get'.
+// typically, using 'get' will leave you with much better error messages, but if you do need to verify that an element is not rendered, then using a query function is the way to go.
+test('entering an invalid value shows an error message', () => {
+  const {getByLabelText, getByRole, queryByRole, rerender} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  user.type(input, '10')
+  expect(getByRole('alert')).toHaveTextContent(/the number is invalid/i)
+  rerender(<FavoriteNumber max={10} />)
+  expect(queryByRole('alert')).toBeNull()
+})
+
+/*Debug DOM State During Tests*/
+// Debug provides a view of what the DOM looks like at any point in time.
+// If I want to look at a specific DOM node, then I can pass it as an argument to debug and get only the output for that particular dumb node, debug(input)
+// by default debug() without params will present the entire container
+import React from 'react'
+import {render} from '@testing-library/react'
+import {FavoriteNumber} from '../favorite-number'
+
+test('renders a number input with a label "Favorite Number"', () => {
+  const {getByLabelText, debug} = render(<FavoriteNumber />)
+  const input = getByLabelText(/favorite number/i)
+  expect(input).toHaveAttribute('type', 'number')
+  debug()
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*SIMPLE MOCKS*/
+////////////////
+//thumbwar.js Module we want to 'Mock'
+function thumbWar(player1, player2) {
+  const numberToWin = 2
+  let player1Wins = 0
+  let player2Wins = 0
+  while (player1Wins < numberToWin && player2Wins < numberToWin) {
+    const winner = utils.getWinner(player1, player2) // The getWinner property
+    if (winner === player1) {
+      player1Wins++
+    } else if (winner === player2) {
+      player2Wins ++
+    }
+  }
+  return player1Wins > player2Wins ? player1 : player2
+}
+
+//Monkey patching inside mock.js
+//our goal is to mock out the getWinner function, so we don't have to run it in our test.
+//We have the utils module right here, and we can go ahead and mock out getWinner by simply assigning it to a new function that takes a player1 and a player2, and is always going to return player1.
+//If we save that, then every single time we run our test, it's going to pass.
+//An essential part of mocking is that you clean up after yourself so that you don't impact other tests that may not want to mock the thing that you want, or may want to mock it in a different way.
+//At the bottom of our test, we need to reassign it to the original value of getWinner. 
+//We'll assign it to originalGetWinner, and then we'll declare that up here as a variable with utils.getWinner
+const assert  = require('assert')
+const thumbWar = require('../thumb-war')
+const utils = require('../utils')
+
+const originalGetWinner = utils.getWinner
+utils.getWinner = (p1, p2) => p1
+
+const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+assert.strictEqual(winner, 'Kent C. Dodds')
+
+utils.getWinner = originalGetWinner
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*MOCKING WITH JEST.FN()*/
+/////////////////////////
+//Jest has built into it a function called jest.fn, which is short for function.
+//You can provide it an implementation, this is called a mock function, and it keeps track of what arguments get called with it. Now, we can expect(utils.getWinner).toHaveBeenCalledTimes(2). The test is still passing.
+//Next, let's add expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler').
+//Because we're calling it two times, we also may want to verify that it's being called with the right things at the right time.
+//We can also say expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler').
+test('returns winner', () => {
+  const originalGetWinner = utils.getWinner
+  utils.getWinner = jest.fn((p1, p2) => p1)
+
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')// notice here we are testing thumbWar not getWinner!
+  expect(winner).toBe('Kent C. Dodds')
+  expect(utils.getWinner).toHaveBeenCalledTimes(2)
+  expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler')
+  expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler')//to have been called takes first argument as the nth call?
+  expect(utils.getWinner).toHaveBeenNthCalledWith(2, 'Kent C. Dodds', 'Ken Wheeler')
+})
+
+// cleanup
+utils.getWinner = originalGetWinner
+
+//*NOTE//
+//when utilizing the jest.fn call we are provided a mock property. The mock is an object that has a calls property, which is an array that holds all of the arguments that this function is called with.
+//output via console.log(utils.getWinner)
+{ calls:
+  [ [ 'Kent C. Dodds', 'Ken Wheeler' ],
+    [ 'Kent C. Dodds', 'Ken Wheeler' ]
+  ],
+  ...
+}
+//We could actually take that, and do expect(utils.getWinner.mock.calls).toEqual() what we copied.
+expect(utils.getWinner.mock.calls).toEqual([
+  [ 'Kent C. Dodds', 'Ken Wheeler' ],
+  [ 'Kent C. Dodds', 'Ken Wheeler' ]
+])
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*MOCKING WITH jest.spyOn()*/
+////////////////////////////
+//Keeping track of the originalGetWinner and restoring it at the end of our test is annoying. 
+//Jest exposes another utility that we can use to simplify this. We can run jest.spyOn and pass utils as the object and 'getWinner' as the method.
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  const originalGetWinner = utils.getWinner
+  utils.getWinner = jest.fn((p1, p2) => p2)
+//With this, we no longer need to keep track of the originalGetWinner. Instead, we can say, utils.getWinner.mockRestore() The .spyOn method will replace the getWinner on utils with an empty mock function
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  utils.getWinner = jest.fn((p1, p2) => p2)
+
+  // cleanup
+  utils.getWinner.mockRestore()
+//Mock functions have an additional method on them called mockImplementation.
+//Here, we can pass the mockImplementation we want to be applied. With this, our tests are still passing. We can use all the regular assertions from Jest that we like.
+test('returns winner', () => {
+  jest.spyOn(utils, 'getWinner')
+  utils.getWinner.mockImplementation((p1, p2) => p2)
+
+//What we're doing here with the spyOn is still a form of monkey patching. It works because the thumb-war module is using utils.getWinner, but that only works because we're using common JS.
+//In an ES module situation, monkey patching doesn't work. We need to take things a little bit further so that we can mock the entire module, and Jest allows you to do this with the jest.mock API.
+//The first argument to jest.mock is the path to the module that you're mocking, and that's relative to our jest.mock is being called.
+//For us, that is this '../utils'. The second argument is a module factory function that will return the mocked version of the module. 
+//Here, we can return an object that has getWinner and that would be a jest.fn() with our mock implementation.
+//With that, we can remove both of these. For the cleanup, we want to run mockReset().
+//That will reset our mock function to the initial state clearing out the calls. With that our tests are passing.
+jest.mock('../utils', () => {
+  return {
+    getWinner: jest.fn((p1, p2) => p1)
+  }
+})
+
+test('returns winner', () => {
+  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
+  expect(winner).toBe('Kent C. Dodds')
+  expect(utilsMock.getWinner.mock.calls).toEqual([
+    ['Kent C. Dodds', 'Ken Wheeler'],
+    ['Kent C. Dodds', 'Ken Wheeler']
+  ])
+
+  // cleanup
+  utils.getWinner.mockReset()
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*MOCKING HTTP Requests W/ MSW*/
+///////////////////////////////
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+
+const server = setupServer(
+  rest.get(
+    'https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json',
+    //provide the request, response and context arguments
+    (req, res, ctx) => {
+      return res(
+        //provide the status of the response we want emulate
+        ctx.status(200),
+        //provide the json we want to respond with
+        ctx.json({ pokemon: data.pokemon, status: 'success' })
+      );
+    }
+  ),
+  rest.get('*', (req, res, ctx) => {
+    console.error(`Please add request handler for ${req.url.toString()}`);
+    return res(
+      ctx.status(500),
+      ctx.json({ error: 'Please add request handler' })
+    );
+  })
+);
+
+beforeAll(() => server.listen({onUnhandledRequest: 'error'}));
+afterAll(() => server.close());
+afterEach(() => server.resetHandlers());
+
+export { server, rest };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*EXPORTING MOCKS*/
+//////////////////
+//Jest allows you to externalize your mock by using a __mocks__ directory.
+//What you do is create a directory with __mocks__ and then a file that has the name of the module that you want to mock. In our case, that's utils.js. 
+//Then in that utils.js, we place the mock that we want to use. We'll take this, and we'll module.exports the inline mock that we had before.
+//mocks/utils.js
+//this is the mock factory function that is literally providing a mock of the module then we reset it at the end
+module.exports = {
+  getWinner: jest.fn((p1, p2) => p1)
+}
+//Then we can go back to our test file, and we can remove the second argument from our jest.mock. Jest will automatically pick up the mock file that we have created. Our test still works!
+jest.mock('../utils')
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*END TO END TESTS - Common Testing Functions and Practices*/
+/////////////////////////////////////////////////////////////
+//install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
+//everyting in cypress will always use find vs get which we are used to in Jest
+//setup cypress -- npm install -save--dev @testing-library/cypress OR yarn add -D cypress @testing-library/cypress (-D makes it a deve dependency)
+//npm run cypress open OR yarn run crypress open
+//remove default tests by going to cypress folder and in integration remove those two folders
+//want to add the react-testing-library cypress commands -- go to support folder --> command.js and add the following:
+import "@testing-library/cypress/add-commands"
+//can start writing tests by going to cypress folder and in integration directory create a file (e.g. payment_spec.js)
+describe('payment', () => {
+  it('user can make payment', () => {
+    //go through a use case yourself to see what you would do then write down the steps you want to emulate
+    //login
+    //check account balance
+    //click on pay button
+    //search for user
+    //add amount and note and click pay
+    //return to transactions
+    //go to personal payments tab
+    //click on payment
+    //verify if payment was made
+    //verify if payment amount was deducted
+  })
+})
+//inside cypress window you can go to the payment_spec.js and click Run 1 integration spec (we are using the Electron environment but you can test within other environments)
+const { v4: uuidv4 } = require('uuid'); //this import allows use to create unique identifiers
+
+describe('payment', () => {
+    it('user can make payment', () => {
+        //  login
+        cy.visit('/'); //this will ensure user visits the root of our app
+        cy.findByRole('textbox', { name: /username/i }).type('johndoe');
+        cy.findByLabelText(/password/i).type('s3cret');
+        cy.findByRole('checkbox', { name: /remember me/i }).check();
+        cy.findByRole('button', { name: /sign in/i }).click();
+
+        //the account balance is dynamic and there are no real details in cypress
+        //if you go to Open Selector Playground which looks like a target in the cypress browser, click on the amount ot the dynamic element and cypress will give you a data test id like this [data-test-sidenav-user-balance]
+        //we want to grab and use this on our cy.get functions cy.get('[data-test=sidenav-user-balance]')
+        //once we grab it we can search our directory for it
+        //use test-id as a last resport the more your tests resembles the way a user will use it the better
+        
+        // check account balance
+        let oldBalance; //later we will use the current balance and compare these
+        cy.get('[data-test=sidenav-user-balance]').then($balance => oldBalance = $balance.text()).then($balance => console.log($balance)); //set old balance to the current balance - we don't need the console.log but can check the balance to make sure it is working correctly
+
+        // click on new button - opens a new page where we can select a user name to send a new payment
+        cy.findByRole('button', { name: /new/i }).click();
+
+        // search for user and then click the user
+        cy.findByRole('textbox').type('devon becker');
+        cy.findByText(/devon becker/i).click();
+
+        // add amount and note and click pay
+        const paymentAmount = "5.00";
+        cy.findByPlaceholderText(/amount/i).type(paymentAmount);
+        const note = uuidv4();
+        cy.findByPlaceholderText(/add a note/i).type(note); //this uuidv4() function allows use to create unique identifiers - must import the library see top of component
+        cy.findByRole('button', { name: /pay/i }).click();
+
+        // return to transactions
+        cy.findByRole('button', { name: /return to transactions/i }).click();
+
+        // go to personal payments
+        cy.findByRole('tab', { name: /mine/i }).click();
+
+        //potential errors if an element covers another element you will get an error
+        //you can use scrollIntoView() to resolve this issue
+        //if error occurs try to see if element is available in your REAL browser and if it is then force cypress to move forward with clicking of the element that is covered via {force: true} configuration within click() function
+
+        // click on payment
+        cy.findByText(note).click({ force: true }); //want to click on the unique text we created as it should be there now
+
+        // verify if payment was made
+        cy.findByText(`-$${paymentAmount}`).should('be.visible'); //check if '-$50.00' is visible on the screen - ASSERTIONS SUCCESS!
+        cy.findByText(note).should('be.visible'); //chec if note is on the screen - ASSERTIONS SUCCESS!
+
+        // verify if payment amount was deducted
+        cy.get('[data-test=sidenav-user-balance]').then($balance => {
+            const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, "")); //replace the '$' sign and ',' globally with empty string
+            const convertedNewBalance = parseFloat($balance.text().replace(/\$|,/g, "")); //need to convert new balance to text or it wont work
+            expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount)); //create our own assertion - lookup 'to' keyword and 'equal' keyword
+        });
+    });
+});
+
+//REVIEW
+//is app working as expected?
+//did we test high value features?
+//can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
+//ensure test are acting as a safegaurd against unwanted behavior in our tests
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*ASYNC TESTS && MOCKS && BEOFRE AND AFTER EACH HOOKS*/
+//////////////////////////////////////////////////////
+//Why use mocks?
+//requests cost money
+//requests are slow
+//dont want test to be dependent on externals
+//How to Mock?
+//create a directory called __mocks__ inside the src directory
+//create a file name that has the same name of whatever function we want to mock
+//go to node-modules --> react-scripts --> scripts --> utils --> createJestConfig and set resetMocks to false OR add this to package.json
+"jest": {
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx,ts,tsx}"
+  ],
+  "resetMocks": false
+}
+//here is the example for axios.js mock in the mocks directory
+const mockResponse = {
+  data: {
+      results: [
+          {
+              name: {
+                  first: "Laith",
+                  last: "Harb"
+              },
+              picture: {
+                  large: "https://randomuser.me/api/portraits/men/59.jpg"
+              },
+              login: {
+                  username: "ThePhonyGOAT"
+              }
+          }
+      ]
+  }
+}
+
+
+export default {
+  get: jest.fn().mockResolvedValue(mockResponse) //here we say use a get function that is a jest function that has resolved valueof mockResponse
+}
+
+//within our test file that is using the mock
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import FollowersList from "../FollowersList";
+
+const MockFollowersList = () => {
+    return (
+        <BrowserRouter>
+            <FollowersList />
+        </BrowserRouter>
+    )
+}
+
+describe("FollowersList", () => {
+
+    beforeEach(() => { //hooks need to go inside the describe block
+        console.log("RUNS BEFORE EACH TEST") 
+        jest.mock("../../../__mocks__/axios")
+    })
+
+    beforeAll(() => {
+        console.log("RUNS ONCE BEFORE ALL TESTS")
+    })
+
+    afterEach(() => {
+        console.log("RUNS AFTER EACH TEST")
+    })
+
+    afterAll(() => {
+        console.log("RUNS ONCE AFTER ALL TESTS")
+    })
+
+    it('should fetch and render input element', async () => {
+        render(
+            <MockFollowersList />
+        );
+        const followerDivElement = await screen.findByTestId(`follower-item-0`) //make sure we are adding this test id to our element we want to find - using index in the map function to make test id unique
+        expect(followerDivElement).toBeInTheDocument();
+    });
+    
+    it('should fetch and render input element', async () => {
+        render(
+            <MockFollowersList />
+        );
+    
+        const followerDivElement = await screen.findByTestId(`follower-item-0`)
+        expect(followerDivElement).toBeInTheDocument();
+    });
+})
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*USEFUL SELECTORS*/
 ///////////////////
 //screen looks in the dom/component we render and gives us a bunch of methods to get certain elements that we want from the component we render
@@ -475,335 +982,6 @@ it('task should have complete class when clicked', () => {
     fireEvent.click(divElement)
     expect(divElement).toHaveClass("todo-item-active")
 });
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*SIMPLE MOCKS*/
-////////////////
-//thumbwar.js Module we want to 'Mock'
-function thumbWar(player1, player2) {
-  const numberToWin = 2
-  let player1Wins = 0
-  let player2Wins = 0
-  while (player1Wins < numberToWin && player2Wins < numberToWin) {
-    const winner = utils.getWinner(player1, player2) // The getWinner property
-    if (winner === player1) {
-      player1Wins++
-    } else if (winner === player2) {
-      player2Wins ++
-    }
-  }
-  return player1Wins > player2Wins ? player1 : player2
-}
-
-//Monkey patching inside mock.js
-//our goal is to mock out the getWinner function, so we don't have to run it in our test.
-//We have the utils module right here, and we can go ahead and mock out getWinner by simply assigning it to a new function that takes a player1 and a player2, and is always going to return player1.
-//If we save that, then every single time we run our test, it's going to pass.
-//An essential part of mocking is that you clean up after yourself so that you don't impact other tests that may not want to mock the thing that you want, or may want to mock it in a different way.
-//At the bottom of our test, we need to reassign it to the original value of getWinner. 
-//We'll assign it to originalGetWinner, and then we'll declare that up here as a variable with utils.getWinner
-const assert  = require('assert')
-const thumbWar = require('../thumb-war')
-const utils = require('../utils')
-
-const originalGetWinner = utils.getWinner
-utils.getWinner = (p1, p2) => p1
-
-const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
-assert.strictEqual(winner, 'Kent C. Dodds')
-
-utils.getWinner = originalGetWinner
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*MOCKING WITH JEST.FN()*/
-/////////////////////////
-//Jest has built into it a function called jest.fn, which is short for function.
-//You can provide it an implementation, this is called a mock function, and it keeps track of what arguments get called with it. Now, we can expect(utils.getWinner).toHaveBeenCalledTimes(2). The test is still passing.
-//Next, let's add expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler').
-//Because we're calling it two times, we also may want to verify that it's being called with the right things at the right time.
-//We can also say expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler').
-test('returns winner', () => {
-  const originalGetWinner = utils.getWinner
-  utils.getWinner = jest.fn((p1, p2) => p1)
-
-  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')// notice here we are testing thumbWar not getWinner!
-  expect(winner).toBe('Kent C. Dodds')
-  expect(utils.getWinner).toHaveBeenCalledTimes(2)
-  expect(utils.getWinner).toHaveBeenCalledWith('Kent C. Dodds', 'Ken Wheeler')
-  expect(utils.getWinner).toHaveBeenNthCalledWith(1, 'Kent C. Dodds', 'Ken Wheeler')//to have been called takes first argument as the nth call?
-  expect(utils.getWinner).toHaveBeenNthCalledWith(2, 'Kent C. Dodds', 'Ken Wheeler')
-})
-
-// cleanup
-utils.getWinner = originalGetWinner
-
-//*NOTE//
-//when utilizing the jest.fn call we are provided a mock property. The mock is an object that has a calls property, which is an array that holds all of the arguments that this function is called with.
-//output via console.log(utils.getWinner)
-{ calls:
-  [ [ 'Kent C. Dodds', 'Ken Wheeler' ],
-    [ 'Kent C. Dodds', 'Ken Wheeler' ]
-  ],
-  ...
-}
-//We could actually take that, and do expect(utils.getWinner.mock.calls).toEqual() what we copied.
-expect(utils.getWinner.mock.calls).toEqual([
-  [ 'Kent C. Dodds', 'Ken Wheeler' ],
-  [ 'Kent C. Dodds', 'Ken Wheeler' ]
-])
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*MOCKING WITH jest.spyOn()*/
-////////////////////////////
-//Keeping track of the originalGetWinner and restoring it at the end of our test is annoying. 
-//Jest exposes another utility that we can use to simplify this. We can run jest.spyOn and pass utils as the object and 'getWinner' as the method.
-test('returns winner', () => {
-  jest.spyOn(utils, 'getWinner')
-  const originalGetWinner = utils.getWinner
-  utils.getWinner = jest.fn((p1, p2) => p2)
-//With this, we no longer need to keep track of the originalGetWinner. Instead, we can say, utils.getWinner.mockRestore() The .spyOn method will replace the getWinner on utils with an empty mock function
-test('returns winner', () => {
-  jest.spyOn(utils, 'getWinner')
-  utils.getWinner = jest.fn((p1, p2) => p2)
-
-  // cleanup
-  utils.getWinner.mockRestore()
-//Mock functions have an additional method on them called mockImplementation.
-//Here, we can pass the mockImplementation we want to be applied. With this, our tests are still passing. We can use all the regular assertions from Jest that we like.
-test('returns winner', () => {
-  jest.spyOn(utils, 'getWinner')
-  utils.getWinner.mockImplementation((p1, p2) => p2)
-
-//What we're doing here with the spyOn is still a form of monkey patching. It works because the thumb-war module is using utils.getWinner, but that only works because we're using common JS.
-//In an ES module situation, monkey patching doesn't work. We need to take things a little bit further so that we can mock the entire module, and Jest allows you to do this with the jest.mock API.
-//The first argument to jest.mock is the path to the module that you're mocking, and that's relative to our jest.mock is being called.
-//For us, that is this '../utils'. The second argument is a module factory function that will return the mocked version of the module. 
-//Here, we can return an object that has getWinner and that would be a jest.fn() with our mock implementation.
-//With that, we can remove both of these. For the cleanup, we want to run mockReset().
-//That will reset our mock function to the initial state clearing out the calls. With that our tests are passing.
-jest.mock('../utils', () => {
-  return {
-    getWinner: jest.fn((p1, p2) => p1)
-  }
-})
-
-test('returns winner', () => {
-  const winner = thumbWar('Kent C. Dodds', 'Ken Wheeler')
-  expect(winner).toBe('Kent C. Dodds')
-  expect(utilsMock.getWinner.mock.calls).toEqual([
-    ['Kent C. Dodds', 'Ken Wheeler'],
-    ['Kent C. Dodds', 'Ken Wheeler']
-  ])
-
-  // cleanup
-  utils.getWinner.mockReset()
-})
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*EXPORTING MOCKS*/
-//////////////////
-//Jest allows you to externalize your mock by using a __mocks__ directory.
-//What you do is create a directory with __mocks__ and then a file that has the name of the module that you want to mock. In our case, that's utils.js. 
-//Then in that utils.js, we place the mock that we want to use. We'll take this, and we'll module.exports the inline mock that we had before.
-//mocks/utils.js
-//this is the mock factory function that is literally providing a mock of the module then we reset it at the end
-module.exports = {
-  getWinner: jest.fn((p1, p2) => p1)
-}
-//Then we can go back to our test file, and we can remove the second argument from our jest.mock. Jest will automatically pick up the mock file that we have created. Our test still works!
-jest.mock('../utils')
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*END TO END TESTS - Common Testing Functions and Practices*/
-/////////////////////////////////////////////////////////////
-//install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
-//everyting in cypress will always use find vs get which we are used to in Jest
-//setup cypress -- npm install -save--dev @testing-library/cypress OR yarn add -D cypress @testing-library/cypress (-D makes it a deve dependency)
-//npm run cypress open OR yarn run crypress open
-//remove default tests by going to cypress folder and in integration remove those two folders
-//want to add the react-testing-library cypress commands -- go to support folder --> command.js and add the following:
-import "@testing-library/cypress/add-commands"
-//can start writing tests by going to cypress folder and in integration directory create a file (e.g. payment_spec.js)
-describe('payment', () => {
-  it('user can make payment', () => {
-    //go through a use case yourself to see what you would do then write down the steps you want to emulate
-    //login
-    //check account balance
-    //click on pay button
-    //search for user
-    //add amount and note and click pay
-    //return to transactions
-    //go to personal payments tab
-    //click on payment
-    //verify if payment was made
-    //verify if payment amount was deducted
-  })
-})
-//inside cypress window you can go to the payment_spec.js and click Run 1 integration spec (we are using the Electron environment but you can test within other environments)
-const { v4: uuidv4 } = require('uuid'); //this import allows use to create unique identifiers
-
-describe('payment', () => {
-    it('user can make payment', () => {
-        //  login
-        cy.visit('/'); //this will ensure user visits the root of our app
-        cy.findByRole('textbox', { name: /username/i }).type('johndoe');
-        cy.findByLabelText(/password/i).type('s3cret');
-        cy.findByRole('checkbox', { name: /remember me/i }).check();
-        cy.findByRole('button', { name: /sign in/i }).click();
-
-        //the account balance is dynamic and there are no real details in cypress
-        //if you go to Open Selector Playground which looks like a target in the cypress browser, click on the amount ot the dynamic element and cypress will give you a data test id like this [data-test-sidenav-user-balance]
-        //we want to grab and use this on our cy.get functions cy.get('[data-test=sidenav-user-balance]')
-        //once we grab it we can search our directory for it
-        //use test-id as a last resport the more your tests resembles the way a user will use it the better
-        
-        // check account balance
-        let oldBalance; //later we will use the current balance and compare these
-        cy.get('[data-test=sidenav-user-balance]').then($balance => oldBalance = $balance.text()).then($balance => console.log($balance)); //set old balance to the current balance - we don't need the console.log but can check the balance to make sure it is working correctly
-
-        // click on new button - opens a new page where we can select a user name to send a new payment
-        cy.findByRole('button', { name: /new/i }).click();
-
-        // search for user and then click the user
-        cy.findByRole('textbox').type('devon becker');
-        cy.findByText(/devon becker/i).click();
-
-        // add amount and note and click pay
-        const paymentAmount = "5.00";
-        cy.findByPlaceholderText(/amount/i).type(paymentAmount);
-        const note = uuidv4();
-        cy.findByPlaceholderText(/add a note/i).type(note); //this uuidv4() function allows use to create unique identifiers - must import the library see top of component
-        cy.findByRole('button', { name: /pay/i }).click();
-
-        // return to transactions
-        cy.findByRole('button', { name: /return to transactions/i }).click();
-
-        // go to personal payments
-        cy.findByRole('tab', { name: /mine/i }).click();
-
-        //potential errors if an element covers another element you will get an error
-        //you can use scrollIntoView() to resolve this issue
-        //if error occurs try to see if element is available in your REAL browser and if it is then force cypress to move forward with clicking of the element that is covered via {force: true} configuration within click() function
-
-        // click on payment
-        cy.findByText(note).click({ force: true }); //want to click on the unique text we created as it should be there now
-
-        // verify if payment was made
-        cy.findByText(`-$${paymentAmount}`).should('be.visible'); //check if '-$50.00' is visible on the screen - ASSERTIONS SUCCESS!
-        cy.findByText(note).should('be.visible'); //chec if note is on the screen - ASSERTIONS SUCCESS!
-
-        // verify if payment amount was deducted
-        cy.get('[data-test=sidenav-user-balance]').then($balance => {
-            const convertedOldBalance = parseFloat(oldBalance.replace(/\$|,/g, "")); //replace the '$' sign and ',' globally with empty string
-            const convertedNewBalance = parseFloat($balance.text().replace(/\$|,/g, "")); //need to convert new balance to text or it wont work
-            expect(convertedOldBalance - convertedNewBalance).to.equal(parseFloat(paymentAmount)); //create our own assertion - lookup 'to' keyword and 'equal' keyword
-        });
-    });
-});
-
-//REVIEW
-//is app working as expected?
-//did we test high value features?
-//can we convert a ton of unit tests into a better integration test? (integration tests should cover an actual use case)
-//ensure test are acting as a safegaurd against unwanted behavior in our tests
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*ASYNC TESTS && MOCKS && BEOFRE AND AFTER EACH HOOKS*/
-//////////////////////////////////////////////////////
-//Why use mocks?
-//requests cost money
-//requests are slow
-//dont want test to be dependent on externals
-//How to Mock?
-//create a directory called __mocks__ inside the src directory
-//create a file name that has the same name of whatever function we want to mock
-//go to node-modules --> react-scripts --> scripts --> utils --> createJestConfig and set resetMocks to false OR add this to package.json
-"jest": {
-  "collectCoverageFrom": [
-    "src/**/*.{js,jsx,ts,tsx}"
-  ],
-  "resetMocks": false
-}
-//here is the example for axios.js mock in the mocks directory
-const mockResponse = {
-  data: {
-      results: [
-          {
-              name: {
-                  first: "Laith",
-                  last: "Harb"
-              },
-              picture: {
-                  large: "https://randomuser.me/api/portraits/men/59.jpg"
-              },
-              login: {
-                  username: "ThePhonyGOAT"
-              }
-          }
-      ]
-  }
-}
-
-
-export default {
-  get: jest.fn().mockResolvedValue(mockResponse) //here we say use a get function that is a jest function that has resolved valueof mockResponse
-}
-
-//within our test file that is using the mock
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import FollowersList from "../FollowersList";
-
-const MockFollowersList = () => {
-    return (
-        <BrowserRouter>
-            <FollowersList />
-        </BrowserRouter>
-    )
-}
-
-describe("FollowersList", () => {
-
-    beforeEach(() => { //hooks need to go inside the describe block
-        console.log("RUNS BEFORE EACH TEST") 
-        jest.mock("../../../__mocks__/axios")
-    })
-
-    beforeAll(() => {
-        console.log("RUNS ONCE BEFORE ALL TESTS")
-    })
-
-    afterEach(() => {
-        console.log("RUNS AFTER EACH TEST")
-    })
-
-    afterAll(() => {
-        console.log("RUNS ONCE AFTER ALL TESTS")
-    })
-
-    it('should fetch and render input element', async () => {
-        render(
-            <MockFollowersList />
-        );
-        const followerDivElement = await screen.findByTestId(`follower-item-0`) //make sure we are adding this test id to our element we want to find - using index in the map function to make test id unique
-        expect(followerDivElement).toBeInTheDocument();
-    });
-    
-    it('should fetch and render input element', async () => {
-        render(
-            <MockFollowersList />
-        );
-    
-        const followerDivElement = await screen.findByTestId(`follower-item-0`)
-        expect(followerDivElement).toBeInTheDocument();
-    });
-})
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*TESTING-LIBRARY*/
 //////////////////

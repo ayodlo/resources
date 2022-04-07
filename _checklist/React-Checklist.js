@@ -152,7 +152,7 @@ const element = (<div className='Container'>
 </div>)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*All Prop Types*/
+/*AllProp Types*/
 ////////////////
 import PropTypes from 'prop-types';
 
@@ -984,7 +984,7 @@ export default App
 import * as React from 'react'
 
 function countReducer(state, action) {//can also destructure our vars here as well by replacing action with {type, step}
-  //count pluck count here with {count} = state
+  //can pluck count here with {count} = state
   const {type, step} = action//destructure out vars here
   switch (type) {
     case 'increment': {
