@@ -1546,10 +1546,10 @@ function App() {
 
 export default App
 
-//another version with custom hook and error handling
-//we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
-//here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom hook (think of useCount as the value returned from provider)
-//if the component we are using this in is not within the CountProvider it won't work and will throw an error
+// another version with custom hook and error handling
+// we can put useCount() and CountProvider() in its own module and import it below as import {CountProvider, useCount} from '../context/count-context'
+// here we create a custom hook that abstracts the [count, setCount] values and also handles error handling all in on custom hook (think of useCount as the value returned from provider)
+// if the component we are using this in is not within the CountProvider it won't work and will throw an error
 import * as React from 'react'
 
 //SHOULD BE IN OWN MODULE
