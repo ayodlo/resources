@@ -43,6 +43,104 @@ products.sort((a, b) => {
   return a.price - b.price;
 });
 
+/*Flatten an Array*/
+var flattenedArray = [];
+var coloursArray = [
+ [“blue”, “green”],
+ [“green”, “black”, “orange”, “blue”],
+ [“green”, “red”]
+ ]
+flattenedArray = coloursArray.reduce( (total, subArray)=>{
+ return total.concat(subArray)
+},[]);
+console.log(flattenedArray)
+["blue", "green", "green", "black", "orange", "blue", "green", "red"]
+
+/*Unique Items in Array*/
+var array = [“blue”, “green”, “green”, “black”, “orange”, “blue”, “green”, “red”];
+var uniqueArray = [];
+uniqueArray = array.filter((element, index, array)=>{
+ return array.indexOf(element) === index;
+})
+console.log(uniqueArray)
+["blue", "green", "black", "orange", "red"]
+
+/*Helper Functions for Solutions*/
+function getColoursFromArray(array){
+  return array.map( e =>{
+    return typeof e.colours !== ‘undefined’ && e.colours
+  })
+ }
+ function flattenArray(array){
+  return array.reduce((total, next)=>{
+    return total.concat(next)
+  },[])
+ }
+ function getUniqueItems(array){
+  return array.filter((e, i, self)=>{
+    return self.indexOf(e) === i
+  });
+ }
+ var pipeline = [getColoursFromArray, flattenArray, getUniqueItems]
+ var result = pipeline.reduce( (total, func)=>{
+  return func(total)
+ },data)
+ console.log(result)
+ ["blue", "green", "black", "orange", "red"]
+
+ /*Two Number Sum*/
+ // Createa function that takes an array and a target sum and find if two numbers in the array equal the target sum
+ // Return the two unumbers that do in an array
+
+ // Solution 3
+ // O(n^2) time | O(1) space
+ function twoNumberSum(array, targetSum) {
+	for(let i = 0; i < array.length - 1; i++) {
+		const firstNum = array[i];
+		for (let j = i + 1; j < array.length; j++) {
+			const secondNum = array[j];
+			if(firstNum + secondNum === targetSum) {
+			  return [firstNum, secondNum]		
+			}
+		}
+	}
+	return []
+}
+
+// Solution 2
+// O(n) time | O(n) space
+function twoNumberSum(array, targetSum) {
+  const nums = {};
+	for (const num of array) {
+		const potentialMatch = targetSum - num;
+		if (potentialMatch in nums) {
+			return [potentialMatch, num];
+		} else {
+			nums[num] = true;
+		}
+	}
+	return [];
+}
+
+// Solution 1
+// O(nlog(n)) time | O(1) space
+function twoNumberSum(array, targetSum) {
+  array.sort((a,b) => a - b);
+	let left = 0;
+	let right = array.length - 1;
+	while(left < right) {
+		const currentSum = array[left] + array[right];
+		if(currentSum === targetSum) {
+			return [array[left], array[right]]
+		} else if (currentSum < targetSum) {
+			left++;
+		} else if (currentSum > targetSum) {
+			right--;
+		}
+	}
+	return [];
+}
+
 /*Unique Objects from Array of Objects*/
 // Creates an array of objects with unique "name" property values
 // We chose 'name' to be the unique identifier here
