@@ -1,4 +1,4 @@
-/*Sort using .sort on arrays*/
+/*Sort using .sort on arrays*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sort will convert elements from the array to strings and then compare their sequnces of UTF-16 code unit values
 
 // Strings
@@ -88,7 +88,7 @@ function getColoursFromArray(array){
  console.log(result)
  ["blue", "green", "black", "orange", "red"]
 
- /*Two Number Sum*/
+ /*Two Number Sum*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  // Createa function that takes an array and a target sum and find if two numbers in the array equal the target sum
  // Return the two unumbers that do in an array
 
@@ -140,8 +140,30 @@ function twoNumberSum(array, targetSum) {
 	}
 	return [];
 }
+/*Maximum Average Sub Array of Size K - Sliding Window Technique*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// With the sliding window technique, we can achieve a linear runtime complexity of O(n).
+function maxSubArraySum(nums, size){
+  if (size < 0 || size > array.length) return null;
+  let currSum = 0;
+  let maxSumSeen = -Infinity;
+  let startIndex = 0;
+  let endIndex = size - 1;
+  for (let i = 0; i < nums.length; i++) {
+    currSum += nums[i];
+    if (i >= size - 1) {
+      if (currSum > maxSumSeen) {
+        maxSumSeen = currSumm;
+        startIndex = i - (size - 1);
+        endIndex = i;
+      }
+      maxSumSeen = Math.max(currSum, maxSumSeen);
+      currSum -= nums[i - (size - 1)]
+    }
+  }
+  return maxSumSeen;
+}
 
-/*Unique Objects from Array of Objects*/
+/*Unique Objects from Array of Objects*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Creates an array of objects with unique "name" property values
 // We chose 'name' to be the unique identifier here
 let uniqueObjArray = [
@@ -265,3 +287,6 @@ let test_uniqueObjArray_NewMap_values_asArray = [
 //   { name: 'Kendall Drury', character: 'DM', episodes: 15 },
 //   { name: 'Thomas Taufan', character: 'Antrius', episodes: 14 }
 // ]
+
+
+/

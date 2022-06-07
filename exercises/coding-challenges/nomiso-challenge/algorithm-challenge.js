@@ -4,7 +4,7 @@
 // React life cycle
 // Hooks and use cases
 // What is an interface in typescript
-
+// Bind vs Call vs Apply
 
 //CHALLENGE
 // Find the country with the largest population by

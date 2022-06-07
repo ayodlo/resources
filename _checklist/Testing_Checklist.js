@@ -57,18 +57,16 @@
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*Test Driven Development Setup*/
-////////////////
-//Create test before writing your actual code
-//Write a failing test before writing implementation logic (don't event need to load anything on browser initially)
+////////////////////////////////
+//Create test before writing your actual code & check with failing test
 //Install JEST - for testing inside React Applications while using 'npx create-react-app my-app' Jest and react-testing-library comes with React so we need to only add react-test-renderer for rendering snapshots
 //Run:
-//If we are using yarn.... npm i -g yarn
-npm i --save-dev react-test-renderer //or yarn add --dev react-test-renderer
+npm i --save-dev react-test-renderer
 npm i -D --exact jest-watch-typeahead@0.6.5 //You need to install specifically v0.6.5 of jest-watch-typeahead
-//Install ENZYME
-//You will need to install enzyme along with an Adapter corresponding to the version of react (e.g. if you are using enzyme with React 16, you can run):
-//Run:
-npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme 
+//For Typescript ee - https://jestjs.io/docs/getting-started
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*Testing Playground*/
+////////////////////////////////
 //Install Testing Playground
 //Install 'Testing Playground' chrome extension - open extension and click on select element icon and when you hover over elements it gives you a suggested query (we want a getByRole or highest priority query)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +83,7 @@ npm i --save-dev enzyme enzyme-adapter-react-16 //or yarn add --dev enzyme
   ---> Changes for variables and state (etc)*/
 /*Testing from Bottom of LIST UP: Unit --> Integration --> E2E*/
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*Testing Priorities*/
+/*Testing Priorities Testing Library*/
 //Use screen.getByRole('') to find an accessible element with this string, can use this to see what roles are available in each element (text-box, button, etc)
 //See https://testing-library.com/docs/queries/about/#priority
 //The point is to mimic the user interaction as much as possible within our tests

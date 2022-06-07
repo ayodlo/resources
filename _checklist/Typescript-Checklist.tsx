@@ -285,3 +285,146 @@ class Department {
 }
 
 new Department('Devon');
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*React + Typescript*/
+//////////////////////
+// Starting a new app with Typescript
+npx create-react-app my-app --template typescript
+
+// Adding Typescript to an existing app
+npm install --save typescript @types/node @types/react @types/react-dom @types/jest
+
+//Special React Types
+// App.jsx
+// functional components have the syntax
+const App: React.FC = () => {
+  const todos = [{ id: 't1', text: 'Finish the course' }];
+  return (
+    <div className="App">
+      {/* A component that adds todos */}
+      <TodoList items={todos} />
+    </div>
+  );
+};
+
+//ToDo.jsx
+interface TodoListProps {
+  items: {id: string, text: string}[];
+};
+
+const TodoList: React.FC<TodoListProps> = props => {
+  return (
+    <ul>
+      {props.items.map(todo => (
+        <li key={todo.id}>{todo.text}</li>
+      ))}
+    </ul>
+  );
+};
+
+// Working with Refs & Generics Example
+const NewTodo: React.FC = () => {
+  const textInputRef = useRef<HTMLInputElement>(null);
+
+  const todoSubmitHandler = (event: React.FormEvent) => {
+    event.preventDefault();
+    const enteredText = textInputRef.current!.value;
+    console.log(enteredText);
+  };
+
+  return (
+    <form onSubmit={todoSubmitHandler}>
+      <div>
+        <label htmlFor="todo-text">Todo Text</label>
+        <input type="text" id="todo-text" ref={textInputRef} />
+      </div>
+      <button type="submit">ADD TODO</button>
+    </form>
+  );
+};
+
+export default NewTodo;
+
+// Functions as Props
+// App.jsx
+const App: React.FC = () => {
+  const todos = [{ id: 't1', text: 'Finish the course' }];
+
+  const todoAddHandler = (text: string) => {
+    console.log(text);
+  };
+
+  return (
+    <div className="App">
+      <NewTodo onAddTodo={todoAddHandler} />
+      <TodoList items={todos} />
+    </div>
+  );
+};
+
+//NewTodo.jsx
+type NewTodoProps = {
+  onAddTodo: (todoText: string) => void;
+};
+
+const NewTodo: React.FC<NewTodoProps> = props => {
+  const textInputRef = useRef<HTMLInputElement>(null);
+
+  const todoSubmitHandler = (event: React.FormEvent) => {
+    event.preventDefault();
+    const enteredText = textInputRef.current!.value;
+    props.onAddTodo(enteredText);
+  };
+
+  return (
+    <form onSubmit={todoSubmitHandler}>
+      <div>
+        <label htmlFor="todo-text">Todo Text</label>
+        <input type="text" id="todo-text" ref={textInputRef} />
+      </div>
+      <button type="submit">ADD TODO</button>
+    </form>
+  );
+};
+
+// Handling State Types W/ Interfaces
+// App.tsx
+const App: React.FC = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  const todoAddHandler = (text: string) => {
+    setTodos(prevTodos => [
+      ...prevTodos,
+      { id: Math.random().toString(), text: text }
+    ]);
+  };
+
+  return (
+    <div className="App">
+      <NewTodo onAddTodo={todoAddHandler} />
+      <TodoList items={todos} />
+    </div>
+  );
+};
+
+// todo.model.jsx
+export interface Todo {
+  id: string;
+  text: string;
+}
+
+
+// Non-null assertion operator typescript
+// A new ! post-fix expression operator may be used to assert that its operand is non-null and non-undefined in contexts where the type checker is unable to conclude that fact. Specifically, the operation x! produces a value of the type of x with null and undefined excluded. Similar to type assertions of the forms <T>x and x as T, the ! non-null assertion operator is simply removed in the emitted JavaScript code.
+
+// Compiled with --strictNullChecks
+function validateEntity(e?: Entity) {
+  // Throw exception if e is null or invalid entity
+}
+function processEntity(e?: Entity) {
+  validateEntity(e);
+  let s = e!.name; // Assert that e is non-null and access name
+}
+
+
